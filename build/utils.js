@@ -1,46 +1,44 @@
-var path = require('path')
-var fs = require('fs')
-var config = require('../config')
-var ExtractTextPlugin = require('extract-text-webpack-plugin')
-var mpvueInfo = require('../node_modules/mpvue/package.json')
-var packageInfo = require('../package.json')
+'use strict'
+const path = require('path')
+const config = require('../config')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const packageConfig = require('../package.json')
 
 exports.assetsPath = function (_path) {
-  var assetsSubDirectory = process.env.NODE_ENV === 'production'
+  const assetsSubDirectory = process.env.NODE_ENV === 'production'
     ? config.build.assetsSubDirectory
     : config.dev.assetsSubDirectory
+
   return path.posix.join(assetsSubDirectory, _path)
 }
 
 exports.cssLoaders = function (options) {
   options = options || {}
 
-  var cssLoader = {
+  const cssLoader = {
     loader: 'css-loader',
     options: {
-      minimize: process.env.NODE_ENV === 'production',
       sourceMap: options.sourceMap
     }
   }
 
-  var postcssLoader = {
-    loader: 'postcss-loader',
+  const px2remLoader = {
+    loader: 'px2rem-loader',
     options: {
-      sourceMap: true
+      remUnit: 41.4 // 由设计稿 / 10
     }
   }
 
-  var px2rpxLoader = {
-    loader: 'px2rpx-loader',
+  const postcssLoader = {
+    loader: 'postcss-loader',
     options: {
-      baseDpr: 1,
-      rpxUnit: 0.5
+      sourceMap: options.sourceMap
     }
   }
 
   // generate loader string to be used with extract text plugin
   function generateLoaders (loader, loaderOptions) {
-    var loaders = [cssLoader, px2rpxLoader, postcssLoader]
+    const loaders = options.usePostCSS ? [cssLoader, postcssLoader, px2remLoader] : [cssLoader, px2remLoader]
     if (loader) {
       loaders.push({
         loader: loader + '-loader',
@@ -61,15 +59,42 @@ exports.cssLoaders = function (options) {
       return ['vue-style-loader'].concat(loaders)
     }
   }
+  // sass 全局
+  function resolveResource(name) {
+   return path.resolve(__dirname, '../src/common/css/' + name);
+  }
+  function generateSassResourceLoader() {
+   var loaders = [
+    cssLoader,
+    postcssLoader, px2remLoader,
+    'sass-loader',
+    {
+     loader: 'sass-resources-loader',
+     options: {
+      // 多个文件时用数组的形式传入，单个文件时可以直接使用 path.resolve(__dirname, '../static/style/common.scss'
+      resources: [resolveResource('style.scss')] 
+     }
+    }
+    ];
+    if (options.extract) {
+     return ExtractTextPlugin.extract({
+      use: loaders,
+      fallback: 'vue-style-loader'
+     })
+    } else {
+     return ['vue-style-loader'].concat(loaders)
+    }
+   }
 
   // https://vue-loader.vuejs.org/en/configurations/extract-css.html
   return {
     css: generateLoaders(),
-    wxss: generateLoaders(),
     postcss: generateLoaders(),
     less: generateLoaders('less'),
-    sass: generateLoaders('sass', { indentedSyntax: true }),
-    scss: generateLoaders('sass'),
+    // sass: generateLoaders('sass', { indentedSyntax: true }),
+    // scss: generateLoaders('sass'),
+    sass: generateSassResourceLoader(),
+    scss: generateSassResourceLoader(),
     stylus: generateLoaders('stylus'),
     styl: generateLoaders('stylus')
   }
@@ -77,35 +102,34 @@ exports.cssLoaders = function (options) {
 
 // Generate loaders for standalone style files (outside of .vue)
 exports.styleLoaders = function (options) {
-  var output = []
-  var loaders = exports.cssLoaders(options)
-  for (var extension in loaders) {
-    var loader = loaders[extension]
+  const output = []
+  const loaders = exports.cssLoaders(options)
+
+  for (const extension in loaders) {
+    const loader = loaders[extension]
     output.push({
       test: new RegExp('\\.' + extension + '$'),
       use: loader
     })
   }
+
   return output
 }
 
-exports.writeFrameworkinfo = function () {
-  var buildInfo = {
-    toolName: mpvueInfo.name,
-    toolFrameWorkVersion: mpvueInfo.version,
-    toolCliVersion: packageInfo.mpvueTemplateProjectVersion || '',
-    createTime: Date.now()
+exports.createNotifierCallback = () => {
+  const notifier = require('node-notifier')
+
+  return (severity, errors) => {
+    if (severity !== 'error') return
+
+    const error = errors[0]
+    const filename = error.file && error.file.split('!').pop()
+
+    notifier.notify({
+      title: packageConfig.name,
+      message: severity + ': ' + error.name,
+      subtitle: filename || '',
+      icon: path.join(__dirname, 'logo.png')
+    })
   }
-
-  var content = JSON.stringify(buildInfo)
-  var fileName = '.frameworkinfo'
-  var rootDir = path.resolve(__dirname, `.././${fileName}`)
-  var distDir = path.resolve(config.build.assetsRoot, `./${fileName}`)
-
-  fs.writeFile(rootDir, content, 'utf8', function (err) {
-    if (err) throw err
-  })
-  fs.writeFile(distDir, content, 'utf8', function (err) {
-    if (err) throw err
-  })
 }
