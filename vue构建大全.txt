@@ -1,0 +1,51 @@
+
+【VUE 项目起始】:
+1、vue init webpack myapp
+
+2、cd myapp 
+
+3、npm install
+
+4、npm run dev
+
+5、使用 sass
+	5.1 、cnpm install --save-dev node-sass sass-loader
+	5.2、在build文件夹下的webpack.base.conf.js的rules里面添加配置
+
+	{
+	  test: /\.sass$/,
+	  loaders: ['style', 'css', 'sass']
+	}
+6、sass 全局
+	npm install --save-dev sass-resources-loader
+	【详细见：https://blog.csdn.net/qq_31393401/article/details/80759535 】
+
+7、使用 lib-flexible
+	npm install lib-flexible --save
+	【main.js】中 ：import 'lib-flexible/flexible.js'
+	检查一下 index.html 的 head 中，如果有 <meta name="viewport" ...> 标签，需要将他去掉
+8、px2rem-loader
+	npm install px2rem-loader --save-dev
+	【 build/utils.js 】添加配置
+	详见：https://segmentfault.com/a/1190000011883121
+		
+
+last【Hbuilder 生成 apk 】
+在 config/index.js 中修改:
+
+build{
+  、、、
+  assetsPublicPath: './',
+  、、、
+}
+
+Hbuild 引入 dist 目录 重命名为 myapp （最终 apk 安装后的名称）
+
+导入后，右键点击项目选择【转换成移动 APP 】
+
+修改 index.html reset.css 引用路径为 ./static/css/reset.css
+
+将 app.[hash].css  和 app.[hash].css.map 中的  /static/font  改为  ../font  此类包含  @font-face 的错误路径改正
+
+【工具栏】上选择【发行】【发行为原装安装包】勾选【Android】【打包】等待打包完成下载即可
+
