@@ -1,7 +1,33 @@
 $side-bg: #2d2635;
 $font-color: #9d9d9d;
-$btn-orange: #c6a352;
-$btn-grey: #2f2f38;
+$orange: #c6a352;
+$grey: #5f5f69;
+$card-bg: #3a3843;
+$car-bg: #1a191f;
+/*mixin  混入*/
+@mixin menu-bg{
+    background: linear-gradient(to bottom, #34323d, #1f1e24);
+}
 .mt24 {
 	margin-top: 24px;
+}
+
+	@font-face {font-family: 'webfont';
+	  src: url('//at.alicdn.com/t/webfont_6cmkhuw7ptk.eot'); /* IE9*/
+	  src: url('//at.alicdn.com/t/webfont_6cmkhuw7ptk.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+	  url('//at.alicdn.com/t/webfont_6cmkhuw7ptk.woff') format('woff'), /* chrome、firefox */
+	  url('//at.alicdn.com/t/webfont_6cmkhuw7ptk.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+	  url('//at.alicdn.com/t/webfont_6cmkhuw7ptk.svg#after') format('svg'); /* iOS 4.1- */
+	}
+
+@font-face {font-family: 'webfont-b';
+  src: url('//at.alicdn.com/t/webfont_gcqra5ziw9i.eot'); /* IE9*/
+  src: url('//at.alicdn.com/t/webfont_gcqra5ziw9i.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('//at.alicdn.com/t/webfont_gcqra5ziw9i.woff') format('woff'), /* chrome、firefox */
+  url('//at.alicdn.com/t/webfont_gcqra5ziw9i.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+  url('//at.alicdn.com/t/webfont_gcqra5ziw9i.svg#思源黑体-粗') format('svg'); /* iOS 4.1- */
+}
+@font-face {
+	font-family: 'sisong';
+	src: url('/static/NotoSerifCJKsc-Medium.otf');
 }

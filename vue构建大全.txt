@@ -1,51 +1,54 @@
 
-¡¾VUE ÏîÄ¿ÆğÊ¼¡¿:
-1¡¢vue init webpack myapp
+ã€VUE é¡¹ç›®èµ·å§‹ã€‘:
+1ã€vue init webpack myapp
 
-2¡¢cd myapp 
+2ã€cd myapp 
 
-3¡¢npm install
+3ã€npm install
 
-4¡¢npm run dev
+4ã€npm run dev
 
-5¡¢Ê¹ÓÃ sass
-	5.1 ¡¢cnpm install --save-dev node-sass sass-loader
-	5.2¡¢ÔÚbuildÎÄ¼ş¼ĞÏÂµÄwebpack.base.conf.jsµÄrulesÀïÃæÌí¼ÓÅäÖÃ
+5ã€ä½¿ç”¨ sass
+	5.1 ã€cnpm install --save-dev node-sass sass-loader
+	5.2ã€åœ¨buildæ–‡ä»¶å¤¹ä¸‹çš„webpack.base.conf.jsçš„rulesé‡Œé¢æ·»åŠ é…ç½®
 
 	{
 	  test: /\.sass$/,
 	  loaders: ['style', 'css', 'sass']
 	}
-6¡¢sass È«¾Ö
+6ã€sass å…¨å±€
 	npm install --save-dev sass-resources-loader
-	¡¾ÏêÏ¸¼û£ºhttps://blog.csdn.net/qq_31393401/article/details/80759535 ¡¿
+	ã€è¯¦ç»†è§ï¼šhttps://blog.csdn.net/qq_31393401/article/details/80759535 ã€‘
 
-7¡¢Ê¹ÓÃ lib-flexible
+7ã€ä½¿ç”¨ lib-flexible
 	npm install lib-flexible --save
-	¡¾main.js¡¿ÖĞ £ºimport 'lib-flexible/flexible.js'
-	¼ì²éÒ»ÏÂ index.html µÄ head ÖĞ£¬Èç¹ûÓĞ <meta name="viewport" ...> ±êÇ©£¬ĞèÒª½«ËûÈ¥µô
-8¡¢px2rem-loader
+	ã€main.jsã€‘ä¸­ ï¼šimport 'lib-flexible/flexible.js'
+	æ£€æŸ¥ä¸€ä¸‹ index.html çš„ head ä¸­ï¼Œå¦‚æœæœ‰ <meta name="viewport" ...> æ ‡ç­¾ï¼Œéœ€è¦å°†ä»–å»æ‰
+8ã€px2rem-loader
 	npm install px2rem-loader --save-dev
-	¡¾ build/utils.js ¡¿Ìí¼ÓÅäÖÃ
-	Ïê¼û£ºhttps://segmentfault.com/a/1190000011883121
-		
+	ã€ build/utils.js ã€‘æ·»åŠ é…ç½®
+	è¯¦è§ï¼šhttps://segmentfault.com/a/1190000011883121
+9ã€mock.js
+	cnpm install mockjs --save-dev
+10ã€axios
+	cnpm install axios --save		
 
-last¡¾Hbuilder Éú³É apk ¡¿
-ÔÚ config/index.js ÖĞĞŞ¸Ä:
+lastã€Hbuilder ç”Ÿæˆ apk ã€‘
+åœ¨ config/index.js ä¸­ä¿®æ”¹:
 
 build{
-  ¡¢¡¢¡¢
+  ã€ã€ã€
   assetsPublicPath: './',
-  ¡¢¡¢¡¢
+  ã€ã€ã€
 }
 
-Hbuild ÒıÈë dist Ä¿Â¼ ÖØÃüÃûÎª myapp £¨×îÖÕ apk °²×°ºóµÄÃû³Æ£©
+Hbuild å¼•å…¥ dist ç›®å½• é‡å‘½åä¸º myapp ï¼ˆæœ€ç»ˆ apk å®‰è£…åçš„åç§°ï¼‰
 
-µ¼Èëºó£¬ÓÒ¼üµã»÷ÏîÄ¿Ñ¡Ôñ¡¾×ª»»³ÉÒÆ¶¯ APP ¡¿
+å¯¼å…¥åï¼Œå³é”®ç‚¹å‡»é¡¹ç›®é€‰æ‹©ã€è½¬æ¢æˆç§»åŠ¨ APP ã€‘
 
-ĞŞ¸Ä index.html reset.css ÒıÓÃÂ·¾¶Îª ./static/css/reset.css
+ä¿®æ”¹ index.html reset.css å¼•ç”¨è·¯å¾„ä¸º ./static/css/reset.css
 
-½« app.[hash].css  ºÍ app.[hash].css.map ÖĞµÄ  /static/font  ¸ÄÎª  ../font  ´ËÀà°üº¬  @font-face µÄ´íÎóÂ·¾¶¸ÄÕı
+å°† app.[hash].css  å’Œ app.[hash].css.map ä¸­çš„  /static/font  æ”¹ä¸º  ../font  æ­¤ç±»åŒ…å«  @font-face çš„é”™è¯¯è·¯å¾„æ”¹æ­£
 
-¡¾¹¤¾ßÀ¸¡¿ÉÏÑ¡Ôñ¡¾·¢ĞĞ¡¿¡¾·¢ĞĞÎªÔ­×°°²×°°ü¡¿¹´Ñ¡¡¾Android¡¿¡¾´ò°ü¡¿µÈ´ı´ò°üÍê³ÉÏÂÔØ¼´¿É
+ã€å·¥å…·æ ã€‘ä¸Šé€‰æ‹©ã€å‘è¡Œã€‘ã€å‘è¡Œä¸ºåŸè£…å®‰è£…åŒ…ã€‘å‹¾é€‰ã€Androidã€‘ã€æ‰“åŒ…ã€‘ç­‰å¾…æ‰“åŒ…å®Œæˆä¸‹è½½å³å¯
 

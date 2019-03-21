@@ -2,11 +2,7 @@
   <div id="home">
     <div class='mask'>
       <div class="pdinner">
-        <div class="nav" @click='showSide'>
-          <div class='line'></div>
-          <div class='line'></div>
-          <div class='line'></div>
-        </div>
+        <navi  v-on:showSide='showSide'/>
         <div class='content'>
           <h1 class='hi'>嗨，</h1>
           <div v-if='state == 0' class="text">
@@ -34,6 +30,7 @@
 
 <script>
 import side from '@/components/side/side.vue'
+import navi from '@/components/navi/navi.vue'
 import btn from '@/components/btn/btn.vue'
 
 // state 为客户状态
@@ -45,7 +42,7 @@ export default {
   name: 'home',
   data() {
     return {
-      state: 0,
+      state: 1,
       sideShow: false,
       btnText1: '',
       btnText2: '',
@@ -79,9 +76,10 @@ export default {
       }
     }
   },
-  components:{
+  components: {
     side,
-    btn
+    btn,
+    navi
   }
 }
 </script>
@@ -107,38 +105,19 @@ export default {
       padding: 56px 0 0 24px;
     }
   }
-  .nav {
-    width: 24px;
-    height: 18px;
-    display: flex;
-    flex-direction: column;
-    align-content: space-between;
-    .line {
-      height: 2px;
-      background: white;
-      margin-top: 6px;
-      &:nth-child(1) {
-        width: 16px;
-        margin-top: 0;
-      }
-      &:nth-child(2) {
-        width: 24px;
-      }
-      &:nth-child(3) {
-        width: 20px;
-      }
-    }
-  }
   .content {
     margin: 60px 0 0 36px;
     letter-spacing: 4px;
+    font-family: 'sisong';
+    font-weight: lighter;
     .hi {
       line-height: 46px;
       font-size: 30px;
+      font-weight: normal;
       color: white;
     }
     .text {
-      line-height: 56px;
+      line-height: 50px;
       font-size: 24px;
       color: white;
       p {
@@ -146,7 +125,7 @@ export default {
         .time {
           padding: 0 10px 2px;
           vertical-align: middle;
-          background: $btn-orange;
+          background: $orange;
         }
       }
     }

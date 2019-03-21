@@ -46,6 +46,7 @@ export default {
 	width: 356px;
 	height: 56px;
   line-height: 56px;
+  font-family: 'webfont-b';
   font-size: 20px;
   letter-spacing: 2px;
   color: white;
@@ -53,11 +54,11 @@ export default {
   margin: 0 auto;
 }
 .btn1 {
-	border: 1px solid $btn-orange;
-	background: $btn-orange;
+	border: 1px solid $orange;
+	background: $orange;
 }
 .btn2 {
-	border: 1px solid $btn-grey;
+	border: 1px solid $grey;
 	background: transparent;
 }
 </style>

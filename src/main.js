@@ -5,6 +5,8 @@ import App from './App'
 import 'lib-flexible/flexible.js'
 import router from './router'
 
+require('./mock.js')
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
