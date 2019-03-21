@@ -13,11 +13,15 @@ export default {
   	foodId: {
   		type: Number,
   		default: 0
-  	}
+  	},
+    num: {
+      type: Number,
+      default: 0
+    }
   },
   data() {
     return {
-    	num: 0
+    	
     }
   },
   methods: {

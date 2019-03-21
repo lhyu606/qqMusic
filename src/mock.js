@@ -10,7 +10,7 @@ Random.extend({
 });
 
 const foods = Mock.mock('/api/getFoods', 'get', {
-	'list|15-25': [{
+	'list|25-40': [{
 		'id|+1': 1,
 		'name': '@FOOD',
 		'price|50-90': 60,

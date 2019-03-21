@@ -10,7 +10,7 @@
   			<div class='bottom'>
   				<div class='price'><span class='yen'>&yen;</span>{{ food.price }}</div>
   				<div class='control'>
-  					<control :foodId='food.id' v-on:menu='menu'/>
+  					<control :foodId='food.id' :num='food.num' v-on:menu='menu'/>
   				</div>
   			</div>
   		</div>
@@ -29,10 +29,21 @@ export default {
   	food: {
   		type: Object,
   		default: {}
+  	},
+  	last: {
+  		type: Boolean,
+  		default: false
   	}
   },
   data() {
     return {}
+  },
+  mounted() {
+  	if (this.last) {
+  		this.$nextTick(() => {
+  			this.$emit('initScroll');
+  		});
+  	}
   },
   methods: {
   	menu(type, foodid) {

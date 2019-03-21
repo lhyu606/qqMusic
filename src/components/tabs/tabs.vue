@@ -45,7 +45,7 @@ export default {
   },
   methods: {
   	checkout(type) {
-  		console.log(type)
+  		this.$emit('checkout', type);
   	}
   }
 }
