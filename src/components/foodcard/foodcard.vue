@@ -1,5 +1,5 @@
 <template>
-  <div class='card-contain'>
+  <div class='card-contain' @click='foodMsg'>
   	<div class='card'>
   		<div class='img'>
   			<!-- <img :src='food.img' /> -->
@@ -48,7 +48,10 @@ export default {
   methods: {
   	menu(type, foodid) {
   		this.$emit('menu', type, foodid);
-  	}
+  	},
+    foodMsg(){
+      this.$emit('foodMsg', this.food.id, this.food.num);
+    }
   },
   components: {
   	split,

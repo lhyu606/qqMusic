@@ -15,6 +15,7 @@ const foods = Mock.mock('/api/getFoods', 'get', {
 		'name': '@FOOD',
 		'price|50-90': 60,
 		'type|1-5': 3,
-		'img|1': './src/common/img/cai.jpg'   
+		'img|1': './../../common/img/cai.jpg' ,
+		'detail|1': '牛油果牛油果甜菜恰巴塔搭配的酥脆口感营养美味可口。'  
 	}]
 });

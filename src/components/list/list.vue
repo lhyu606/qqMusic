@@ -1,5 +1,6 @@
 <template>
   <div class="menu" >
+    <!-- 头部 -->
     <div class="head">
       <side :sideShow='sideShow' v-on:hideSide='showSide'/>
       <div class="nav-contain">
@@ -8,7 +9,7 @@
       <div class='title'>菜单</div>
       <tabs :type='type' v-on:checkout='checkout'/>
     </div>
-    
+    <!-- 菜品列表 -->
     <div class="body" ref="menuContain">
       <div>
         <split />
@@ -18,13 +19,30 @@
           :key='food.id' 
           v-show='food.type == type'
           v-on:menu='menu'
-          v-on:initScroll='__initScroll'/>
+          v-on:initScroll='__initScroll'
+          v-on:foodMsg='foodMsg(food.id, food.num)'/>
       </div>
     </div>
-    <div class="foot">
-      <car :foods='SelectFoods'/>
+    <!-- 菜品详情 -->
+    <transition name='fade'>
+    <div class='detail-box' v-show='showDetail' @click='hideFoodMsg'>
+      <div class='condetail'>
+        <div class='img-box'><img src='./../../common/img/cai.jpg'/></div>
+        <div class='content'>
+          <h4 class='name'>【 {{ detailFood.name }} 】</h4>
+          <span class='text'>{{ detailFood.detail }}</span>
+          <div class='control'>
+            <control :foodId='detailFood.id' :num='detailFood.num' v-on:menu='menu'/>
+          </div>
+        </div>
+      </div>
     </div>
-    <control :foodId='1' :num='1'  v-on:menu='menu'/>
+    </transition>
+    <!-- 购物车 -->
+    <div class="foot">
+      <car :foods='SelectFoods' v-on:menu='menu'/>
+    </div>
+    
   </div>
 </template>
 
@@ -50,7 +68,14 @@ export default {
     return {
       foods: [],
       sideShow: false,
-      type: 5
+      type: 1,
+      detailFood: {
+        id: 1,
+        name: '',
+        detail: '',
+        num: 0
+      },
+      showDetail: false
     }
   },
   created() {
@@ -58,8 +83,6 @@ export default {
   		.then(res => {
         this.foods = res.list;
   		});
-      console.log('c')
-      console.log(this.foods)
   },
   computed: {
     SelectFoods() {
@@ -74,7 +97,7 @@ export default {
   },
   methods: {
     __initScroll() {
-      this.$nextTick(() => {console.log('list')
+      this.$nextTick(() => {
           this.menuScroll = new BScroll(this.$refs.menuContain,{
             click: true
           });
@@ -83,20 +106,39 @@ export default {
   	showSide() {
       this.sideShow = !this.sideShow;
     },
-    menu(type, foodid) {
+    menu(type, foodid) { console.log(type, foodid)
       this.foods.map(food => {
         if (food.id == foodid) {
           if (food.num) {
-            food.num++;
+            if (type == '+') {
+              food.num++;
+            } else if (type == '-') {
+              food.num--;
+            }
           } else {
             this.$set(food, 'num', 1);
           }
         }
       });
-      console.log(type, foodid)
     },
     checkout(type) {
       this.type = type;
+    },
+    foodMsg(foodid, num){
+      this.showDetail = true;
+      this.foods.map(food => {
+        if (food.id == foodid) {
+          this.detailFood.id = food.id;
+          this.detailFood.name = food.name;
+          this.detailFood.detail = food.detail;
+          this.detailFood.num = food.num;
+          return;
+        }
+      });
+    },
+    hideFoodMsg (event) {
+      console.log(event)
+      //this.showDetail = false;
     }
   },
   components: {
@@ -150,6 +192,56 @@ export default {
     text-align: center;
     color: white;
     font-size: 24px;
+  }
+  .detail-box {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    background: rgba(7, 17, 27, 0.7);
+    &.fade-enter-active, &.fade-leave-active{
+      transition: all 0.3s;
+      opacity: 1;
+    }
+    &.fade-enter, &.fade-leave-to{
+      opacity: 0;
+    }
+    .condetail {
+      @include menu-bg;
+      width: 326px;
+      height: 386px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 4px;
+      overflow: hidden;
+      color: white;
+      .img-box {
+        img {
+          width: 326px;
+        }
+      }
+      .content {
+        padding: 15px 20px;
+        line-height: 30px;
+        .name {
+          margin: 0;
+          font-size: 18px;
+          text-indent: -0.5em;
+        }
+        .text {
+          font-size: 16px;
+        }
+        .control {
+          margin-top: 10px;
+          display: flex;
+          flex-direction: row-reverse;
+        }
+      }
+    }
   }
 }
 </style>

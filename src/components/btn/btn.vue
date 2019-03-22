@@ -45,13 +45,14 @@ export default {
 .btn {
 	width: 356px;
 	height: 56px;
-  line-height: 56px;
+  line-height: 60px;
   font-family: 'webfont-b';
   font-size: 20px;
   letter-spacing: 2px;
   color: white;
   text-align: center;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 .btn1 {
 	border: 1px solid $orange;
