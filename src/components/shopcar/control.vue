@@ -21,6 +21,10 @@ export default {
     num: {
       type: Number,
       default: 0
+    },
+    isinScroll: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -42,7 +46,7 @@ export default {
   },
   methods: {
   	add(event) {
-      if(!event._constructed){
+      if(!event._constructed && this.isinScroll){
           return;
         }
   		if (this.num >= 100) {
@@ -52,7 +56,7 @@ export default {
       this.$emit('menu', '+', this.foodId);
   	},
   	reverse(event) {
-      if(!event._constructed){
+      if(!event._constructed && this.isinScroll){
           return;
         }
   		if (this.num <= 0) {
@@ -60,8 +64,8 @@ export default {
   		}
 	  	//this.num--;
       this.$emit('menu', '-', this.foodId);
-  	}
-  }
+    }
+  },
 }
 </script>
 

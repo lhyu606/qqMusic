@@ -26,13 +26,13 @@
     <!-- 菜品详情 -->
     <transition name='fade'>
     <div class='detail-box' v-show='showDetail' @click='hideFoodMsg'>
-      <div class='condetail'>
+      <div class='condetail' @click.stop="">
         <div class='img-box'><img src='./../../common/img/cai.jpg'/></div>
         <div class='content'>
           <h4 class='name'>【 {{ detailFood.name }} 】</h4>
           <span class='text'>{{ detailFood.detail }}</span>
           <div class='control'>
-            <control :foodId='detailFood.id' :num='detailFood.num' v-on:menu='menu'/>
+            <control :isinScroll='isinScroll' :foodId='detailFood.id' :num='detailFood.num' v-on:menu='menu'/>
           </div>
         </div>
       </div>
@@ -75,7 +75,8 @@ export default {
         detail: '',
         num: 0
       },
-      showDetail: false
+      showDetail: false,
+      isinScroll: false
     }
   },
   created() {
@@ -106,7 +107,7 @@ export default {
   	showSide() {
       this.sideShow = !this.sideShow;
     },
-    menu(type, foodid) { console.log(type, foodid)
+    menu(type, foodid) {
       this.foods.map(food => {
         if (food.id == foodid) {
           if (food.num) {
@@ -118,6 +119,8 @@ export default {
           } else {
             this.$set(food, 'num', 1);
           }
+
+          this.foodMsg(foodid, food.num);
         }
       });
     },
@@ -137,8 +140,7 @@ export default {
       });
     },
     hideFoodMsg (event) {
-      console.log(event)
-      //this.showDetail = false;
+      this.showDetail = false;
     }
   },
   components: {

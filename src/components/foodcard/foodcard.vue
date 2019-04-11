@@ -10,7 +10,7 @@
   			<div class='bottom'>
   				<div class='price'><span class='yen'>&yen;</span>{{ food.price }}</div>
   				<div class='control'>
-  					<control :foodId='food.id' :num='food.num' v-on:menu='menu'/>
+  					<control :isinScroll='isinScroll' :foodId='food.id' :num='food.num' v-on:menu='menu'/>
   				</div>
   			</div>
   		</div>
@@ -36,7 +36,9 @@ export default {
   	}
   },
   data() {
-    return {}
+    return {
+			isinScroll: true
+		}
   },
   mounted() {
   	if (this.last) {
