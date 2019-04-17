@@ -12,8 +12,8 @@ export default new Router({
   routes: [
     {
       path: '/list',
-      name: 'home',
-      component: home
+      name: 'list',
+      component: list
     },
     {
       path: '/plan',
@@ -22,8 +22,8 @@ export default new Router({
     },
     {
       path: '/',
-      name: 'list',
-      component: list
+      name: 'location',
+      component: location
     },
     {
       path: '/concat',

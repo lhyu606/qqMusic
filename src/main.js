@@ -4,9 +4,13 @@ import Vue from 'vue'
 import App from './App'
 import 'lib-flexible/flexible.js'
 import router from './router'
+import baiduMap from 'vue-baidu-map'
 
 require('./mock.js')
 
+Vue.use(baiduMap, {
+  ak: 'RdG7yusbikqdcHMfPe1yR3YkS0xMh35y'
+});
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

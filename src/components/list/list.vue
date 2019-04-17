@@ -120,7 +120,10 @@ export default {
             this.$set(food, 'num', 1);
           }
 
-          this.foodMsg(foodid, food.num);
+          this.detailFood.id = food.id;
+          this.detailFood.name = food.name;
+          this.detailFood.detail = food.detail;
+          this.detailFood.num = food.num;
         }
       });
     },
