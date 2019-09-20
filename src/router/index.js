@@ -9,17 +9,27 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: home
+      redirect: {
+        name: 'login'
+      }
     }, {
       path: '/home',
-      redirect: {
-      	name: 'home'
+      name: 'home',
+      component: (resolve) => {
+        require(['@/components/home'], resolve)
+      }
+    }, {
+      path: '/login',
+      name: 'login',
+      component: (resolve) => {
+        require(['@/components/login'], resolve)
       }
     }, {
       path: '/menu',
       name: 'menu',
-      component: menu
+      component: (resolve) => {
+        require(['@/components/menu'], resolve)
+      }
     }, {
       path: '*',
       redirect: {
