@@ -1,11 +1,6 @@
 {
   "pages": [
-    "pages/recom/main",
-    "pages/search/main",
-    "pages/topList/main",
-    "pages/index/main",
-    "pages/logs/main",
-    "pages/counter/main"
+    "pages/good/good"
   ],
   "window": {
     "backgroundTextStyle": "light",
