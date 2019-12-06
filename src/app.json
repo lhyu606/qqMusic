@@ -1,11 +1,38 @@
 {
   "pages": [
-    "pages/good/good"
+    "pages/good/main",
+    "pages/payCard/main",
+    "pages/addCard/main",
+    "pages/fillInInfo/main",
+    "pages/bindList/main",
+    "pages/fillInPicWord/main",
+    "pages/choiceCard/main",
+    "pages/recharge/main",
+    "pages/login/main",
+    "pages/singleGood/main",
+    "pages/package/main",
+    "pages/shopList/main",
+    "pages/searchShop/main",
+    "pages/scanQR/main",
+    "pages/afterPayList/main",
+    "pages/afterPayReady/main",
+    "pages/orderDetail/main",
+    "pages/orderHistory/main",
+  	"pages/paySuccess/main",
+  	"pages/payReady/main",
+  	"pages/payList/main",
+    "pages/searchGood/main",
+  	"pages/privilegeDetail/main"
   ],
-  "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "WeChat",
-    "navigationBarTextStyle": "black"
+	"permission": {
+		"scope.userLocation": {
+			"desc": "你的位置信息将用于小程序位置接口的效果展示"
+		}
+	},
+	"window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#171413",
+    "navigationBarTitleText": "娱加在线商城",
+    "navigationBarTextStyle": "white"
   }
 }

@@ -1,17 +1,36 @@
 <script>
 export default {
   created () {
-    // 调用API从本地缓存中获取数据
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
+    // 获取设备信息
+    this.getSystemInfoSync()
+  },
+  mounted () {
+    var pages = getCurrentPages()    //获取加载的页面
+    var currentPage = pages[pages.length-1]    //获取当前页面的对象
+    console.log('currentPage')
+    console.log(currentPage)
 
-    console.log('app created and cache logs by setStorageSync')
+  },
+  methods: {
+    getSystemInfoSync() {
+      // 获取微信窗口信息
+      let systemInfo = wx.getSystemInfoSync()
+      this.$store.commit('setSystemInfo', systemInfo)
+      console.log(systemInfo)
+    }
   }
 }
 </script>
 
 <style>
+page {
+  min-height: 100%;
+  background: #201c19;
+}
+page::before {
+  content: '';
+  display: table;
+}
 .container {
   height: 100%;
   display: flex;
@@ -20,12 +39,15 @@ export default {
   justify-content: space-between;
   padding: 200rpx 0 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 /* this rule will be remove */
-* {
-  transition: width 2s;
+div, p, span {
+  /*transition: width 2s;
   -moz-transition: width 2s;
   -webkit-transition: width 2s;
-  -o-transition: width 2s;
+  -o-transition: width 2s;*/
+  box-sizing: border-box;
+  font-weight: 400
 }
 </style>
