@@ -1,18 +1,16 @@
 {
   "pages": [
     "pages/good/main",
-    "pages/payCard/main",
     "pages/addCard/main",
     "pages/fillInInfo/main",
-    "pages/bindList/main",
     "pages/fillInPicWord/main",
-    "pages/choiceCard/main",
-    "pages/recharge/main",
-    "pages/login/main",
-    "pages/singleGood/main",
-    "pages/package/main",
     "pages/shopList/main",
     "pages/searchShop/main",
+    "pages/recharge/main",
+    "pages/choiceCard/main",
+    "pages/register/main",
+    "pages/singleGood/main",
+    "pages/package/main",
     "pages/scanQR/main",
     "pages/afterPayList/main",
     "pages/afterPayReady/main",
@@ -20,9 +18,12 @@
     "pages/orderHistory/main",
   	"pages/paySuccess/main",
   	"pages/payReady/main",
-  	"pages/payList/main",
+    "pages/payList/main",
+    "pages/payCard/main",
+    "pages/privilegeDetail/main",
+  	"pages/bindList/main",
     "pages/searchGood/main",
-  	"pages/privilegeDetail/main"
+    "pages/error/main"
   ],
 	"permission": {
 		"scope.userLocation": {

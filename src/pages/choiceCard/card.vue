@@ -3,21 +3,22 @@
   <div class="contain">
     <!-- 头部 -->
     <div class="notUse">
-      <div class="addCard" @click="addCard">
+      <!-- <div class="addCard"> -->
+      <!-- <div class="addCard" @click="addCard">
         <div class="addCardText"> </div>
-        <!-- <div class="addCardText">新增+</div> -->
+        <div class="addCardText fs16">新增+</div>
         <div class="clear"></div>
-      </div>
+      </div> -->
       <div class="top" @click="choiceCard(-1)">
-        <div class="text">不使用会员卡</div>
+        <div class="text fs14">不使用会员卡</div>
         <div class="icon" :class="{active: !ecard.ecardid}"></div>
       </div>
-      <div class="tip" v-if="cards.length > 0">请选择您要使用的会员卡</div>
+      <div class="tip fs14" v-if="cards.length > 0">请选择您要使用的会员卡</div>
       <div class="tip" v-if="cards.length === 0">您尚无会员卡可用</div>
     </div>
     <!-- 卡列表 -->
     <scroll-view scroll-y="true" class="cardList">
-      <div class="cardContent">
+      <div class="cardContent" v-if="cards.length > 0">
         <div class="pt30"></div>
         <div class="cardItem" v-for="(item, index) in cards" :key="item.ecardid">
           <div class="card" :class="{pink: index%2 == 0, orange: index%2 == 1}">
@@ -29,8 +30,8 @@
               <div class="cardNum">{{item.cardnum}}</div>
             </div>
             <div class="cardTime">
-              <div class="recharge" @click="recharge(index)">
-                <!-- 充值 -->
+              <div class="recharge" @click="recharge(index)" v-if="item.hasRechargeDiscountFuntion && item.usestorage == 0">
+                充值
               </div>
               <img src="../../../static/icon_time.png" class="timeImg">{{item.uselimitdate}}
             </div>
@@ -38,6 +39,7 @@
           <div class="icon" :class="{active: item.ecardid == ecard.ecardid}" @click="choiceCard(index)"></div>
         </div>
       </div>
+      <div class="addCardButton" @click="addCard">新增会员卡</div>
     </scroll-view>
   </div>
   </div>
@@ -61,6 +63,14 @@ export default {
     },
     companyAndRoom () {
       return this.$store.state.companyAndRoom
+    },
+    cartLength () {
+      // 购物车 商品数量
+      let length = 0
+      for (let i=0; i<this.$store.state.cartList.length; i++) {
+        length++
+      }
+      return length
     }
   },
 
@@ -80,11 +90,11 @@ export default {
         success(res) {
           if (res.data.ret === 0){
             that.cards = res.data.list || []
-            that.$store.commit('setCards', res.data.list)
             let i = 0
             that.cards = that.cards.filter(item => {
               return item.uselinemarket === 0
             })
+            that.$store.commit('setCards', that.cards)
             that.setCurrentCardIndex()
           } else {
             console.log('返回码不是 0')
@@ -105,8 +115,10 @@ export default {
         } else if(this.cards[index]) {
           this.$store.commit('setEcard', this.cards[index])
         }
-        // 更新购物车价格
-        util.updateCartPrice()
+        // 如果购物车 有东西 更新购物车价格
+        if (this.cartLength > 0) {
+          util.updateCartPrice()
+        }
       }
       // 直接返回
       console.log('fanh')
@@ -139,7 +151,7 @@ export default {
     },
     addCard () {
       // 新增会员卡
-      wx.reLaunch({
+      wx.navigateTo({
         url: '/pages/addCard/main'
       })
     }
@@ -170,13 +182,14 @@ export default {
   box-sizing border-box
 .notUse
   padding 0 20px
-  flex 0 0 100px
+  flex 0 0 70px
   box-sizing border-box
 .addCard
   padding 5px
   font-size 14px
 .addCardText
   float right
+  opacity 1
 .clear
   clear both
 .top
@@ -205,7 +218,7 @@ export default {
 .tip
   height: 30px
   line-height: 30px
-  font-size 15px
+  font-size 14px
 // 卡列表
 .cardList
   flex 1 1 auto
@@ -234,10 +247,10 @@ export default {
   margin-bottom 30px
   box-sizing border-box
 .card.pink
-  background url('http://yjyf.evideo.net.cn/wechat_order_service/static/img/pink.a1e7c1c.png') no-repeat
+  background url('https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/pink.png') no-repeat
   background-size 260px 120px
 .card.orange
-  background url('http://yjyf.evideo.net.cn/wechat_order_service/static/img/orange.1563f05.png') no-repeat
+  background url('https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/orange.png') no-repeat
   background-size 260px 120px
 .company
   text-align right
@@ -270,6 +283,15 @@ export default {
 .recharge
   float right
   padding 0 15px
+.addCardButton
+  height 50px
+  line-height 50px
+  color #ffffff
+  background $yellow
+  margin 30px 20px
+  text-align center
+  font-size 16px
+  border-radius 5px
 </style>
 
 <!-- http://yjyf.evideo.net.cn/wechat_order_service/static/img/pink.a1e7c1c.png -->

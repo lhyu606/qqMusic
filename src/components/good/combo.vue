@@ -64,29 +64,36 @@ export default {
       return false
       // 更新到购物车
       // 购物车没有 该商品
-      if (!this.cartList[this.currentGood.MaterialSortID]) {
-        Vue.set(this.cartList,this.currentGood.MaterialSortID, [])
-      }
-      if (this.cartList[this.currentGood.MaterialSortID][this.currentGood.MaterialID]) {
-        // 有商品
-        let cartSortRequest = this.cartList[this.currentGood.MaterialSortID][this.currentGood.MaterialID].sort_request
-        for (let i=0; i<cartSortRequest.length; i++) {
-          // 找到同口味
-          if (cartSortRequest[i].lit_name === this.currentGood.sort_request[index].lit_name) {
-            cartSortRequest[i].active = this.currentGood.sort_request[index].active
-          }
-        }
-      } else {
-        // 无商品
-        Vue.set(this.cartList[this.currentGood.MaterialSortID],this.currentGood.MaterialID, this.currentGood)
-      }
-      this.$store.commit('setCartList', this.cartList)
+      // if (!this.cartList[this.currentGood.MaterialSortID]) {
+      //   Vue.set(this.cartList,this.currentGood.MaterialSortID, [])
+      // }
+      // if (this.cartList[this.currentGood.MaterialSortID][this.currentGood.MaterialID]) {
+      //   // 有商品
+      //   let cartSortRequest = this.cartList[this.currentGood.MaterialSortID][this.currentGood.MaterialID].sort_request
+      //   for (let i=0; i<cartSortRequest.length; i++) {
+      //     // 找到同口味
+      //     if (cartSortRequest[i].lit_name === this.currentGood.sort_request[index].lit_name) {
+      //       cartSortRequest[i].active = this.currentGood.sort_request[index].active
+      //     }
+      //   }
+      // } else {
+      //   // 无商品
+      //   Vue.set(this.cartList[this.currentGood.MaterialSortID],this.currentGood.MaterialID, this.currentGood)
+      // }
+      // this.$store.commit('setCartList', this.cartList)
     },
     comfirmCombo () {
       console.log(this.currentGood)
       // 购物车 有该商品，则更新购物车（/cart/updateCart），否则，添加购物车（/cart/addCart）
-      util.comfirmCombo()
       this.closeCombo()
+      // 如果是套餐 就 先选子商品 否则 正常 添加购物车 或 更改 口味
+      if (this.currentGood.OrderNumber == 0 && (this.currentGood.MealType == '2' || this.currentGood.MealType == '3')) {
+        wx.navigateTo({
+          url: '/pages/package/main'
+        })
+      } else {
+        util.comfirmCombo()
+      }
     },
     stopPropagation () {
       // 什么都不做，阻止冒泡
@@ -138,7 +145,7 @@ div
   text-align justify
   max-height 250px
   padding-bottom 12px
-  overflow hidden
+  overflow scroll
 .comboItems
   display inline-block
 .comboItem

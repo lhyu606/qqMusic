@@ -225,6 +225,7 @@ export default {
     console.log('mounted--------号码验证begin')
     console.log(this.unbindList)
     this.mobile = this.unbindList[0].mobile
+    this.mobileShow = ''
     this.mobileShow += this.unbindList[0].mobile.substring(0, 3)
     this.mobileShow += '****'
     this.mobileShow += this.unbindList[0].mobile.substring(7)
@@ -234,6 +235,8 @@ export default {
       this.volidCode = ''
       this.cutDown = 60
     }
+    this.volidCode = ''
+    this.cutDown = 60
   }
 }
 </script>

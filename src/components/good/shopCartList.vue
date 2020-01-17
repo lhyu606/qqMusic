@@ -7,8 +7,8 @@
       </div>
       <scroll-view scroll-y="true" class="listWrapper">
         <div class="listContent">
-          <div class="a" v-for="(item, index) in cartList" :key="index" v-if="item" >
-            <div class="item" v-for="(good, idx) in item" :key="idx" v-if="good" @click="showCombo(good)">
+          <!-- <div class="a" v-for="(item, index) in newCartList" :key="index" v-if="item" > -->
+            <div class="item" v-for="(good, idx) in newCartList" :key="idx" v-if="good" @click="showCombo(good)">
               <div class="left">
                 <span class="lh24">{{good.MaterialName}}</span>
                 <div class="sub" v-if="good.WinePresentSetName && good.WinePresentSetName !== ''">/{{good.WinePresentSetName}}</div>
@@ -23,7 +23,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          <!-- </div> -->
         </div>
       </scroll-view>
     </div>
@@ -54,6 +54,17 @@ export default {
     },
     isClearCart () {
       return this.$store.state.clearCart
+    },
+    newCartList () {
+      let result = []
+      for (let key in this.cartList) {
+        for (let k in this.cartList[key]) {
+          result.push(this.cartList[key][k])
+        }        
+      }
+      console.log('result---------------------')
+      console.log(result)
+      return result
     }
   },
   watch: {
@@ -204,6 +215,8 @@ export default {
       if (this.canClick) {
         this.canClick = false
         let timer = setTimeout(() => {
+          clearTimeout(timer)
+          timer = null
           this.canClick = true
         }, 300)
       } else {
@@ -244,6 +257,13 @@ export default {
     }
     this.isUp = true
     this.listAnimation = {}
+  },
+  onShow () {
+    if (this.$store.state.clouduserid) {
+      this.getCatalog()
+    }
+    this.isUp = true
+    this.listAnimation = {}
   }
 }
 </script>
@@ -278,7 +298,7 @@ export default {
   border-top 1px solid #cea16a
 .listWrapper
   height 334px
-  overflow hidden
+  overflow scroll
   background #423c31
   width auto
   // transform translate(0, -100%)

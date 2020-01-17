@@ -53,23 +53,29 @@
                 <div v-show="item.Status=='已付款'" class="time-in">{{item.PaymentDatetime}}</div>
                 <div v-show="item.Status=='未消费'">支付时间：</div>
                 <div v-show="item.Status=='未消费'" class="time-in">{{item.PaymentDatetime}}</div>
-                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0">消费时间：</div>
-                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0" class="time-in">{{item.ConsumeDatetime}}</div>
+                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0 && !item.showPaymentDatetime">消费时间：</div>
+                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0 && !item.showPaymentDatetime" class="time-in">{{item.ConsumeDatetime}}</div>
+                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0 && item.showPaymentDatetime">支付时间：</div>
+                <div v-show="item.Status=='已消费' && item.AfterPaySign == 0 && item.showPaymentDatetime" class="time-in">{{item.PaymentDatetime}}</div>
                 <div v-show="item.Status=='已消费' && item.AfterPaySign == 1">支付时间：</div>
                 <div v-show="item.Status=='已消费' && item.AfterPaySign == 1" class="time-in">{{item.PaymentDatetime}}</div>
                 <div v-show="item.Status=='已退款'">退款时间：</div>
                 <div v-show="item.Status=='已退款'" class="time-in">{{item.RefundDatetime}}</div>
+
+                <div v-show="item.Status=='退款中'">支付时间：</div>
+                <div v-show="item.Status=='退款中'" class="time-in">{{item.PaymentDatetime}}</div>
               </div>
             </div>
             <div class="lh35 colb2 fs16 flexlr">
               <span v-show="item.AfterPaySign == 1">后结</span>
               <span v-show="item.AfterPaySign == 0">现结</span>
               <span v-show="item.SynSign!=0 && item.RefundStatus == '1' && item.StatusSign==2 && item.QuitOnlineOrderID==0" class="red text-right">异常单</span>
-              <!-- v-show="order.SynSign!=0 && order.RefundStatus=='1' && order.StatusSign==2 && order.QuitOnlineOrderID==0 && isAuthRefund==0" -->
+              <!-- v-show="order.SynSign!=0 && order.RefundStatus=='1' && order.StatusSign==2 && order.QuitOnlineOrderID==0 && isAuthRefund==0"  item.hasRefund 退款成后隐藏 按钮  -->
               <span 
                 v-show="item.SynSign!=0 && item.RefundStatus == '1' && item.StatusSign==2 && item.QuitOnlineOrderID==0 && isAuthRefund==0"
-                class="order-history-all-item-content-btn" 
-                @click.stop="refund(item.OnlineOrderID)"
+                class="refund-btn" 
+                :class="{hasRefund: item.hasRefund}"
+                @click.stop="refund(item)"
                 >退款</span>
             </div>
           </div>
@@ -112,12 +118,13 @@
           </div>
         </div>
       </div>
-      <div class="line-bottom">-------- 我是有底线的 --------</div>
+      <div class="line-bottom" v-if="allOrderFromOffline.length > 0">-------- 我是有底线的 --------</div>
     </scroll-view>
     <!-- 卡台商品单 -->
   </div>
 </template>
 <script>
+import Vue from 'vue'
 import util from '@/utils/index'
 export default {
   data () {
@@ -155,13 +162,13 @@ export default {
         url: this.$store.state.ip + '/company_admin/index.php/Interface/getCompanyMsg', 
         data: '{"companyid":"'+this.$store.state.headShopNo+'"}',
         success(res) {
-          if (res.data.ret === 0) {
+          if (res.data.ret === 0 && res.data.msg) {
             that.isAuthRefund = res.data.msg.IsAuthRefund
           }
         }
       })
     },
-    getOrderDetailById () {
+    getOrderHistory () {
       // 查询 订单列表
       let that = this
       util.wXrequest({
@@ -181,16 +188,38 @@ export default {
           that.page++
           if (res.data.code === '0'){
             // 存储所有商品类别
-            if (res.data.result.length < that.pagesize) {
+            if (!res.data.result) {
               // 返回结果长度小于 单页请求数，则 结束
               that.isOver = true
+              return
+            }
+            // 过滤 隐藏新生成的退款单，只显示原单(状态从异常单变成退款单)
+            // for (let i=res.data.result.length-1; i>=0; i--) {
+            //     let item = res.data.result[i]
+            //     if (item.RefundStatus === 1 && item.QuitOnlineOrderID !== 0 && item.SynSign==2) {
+            //         res.data.result.splice(i, 1)
+            //     }
+            // }
+            // 如果 第一页 请求为空，则再请求一次
+            if (that.page === 2 && res.data.result.length === 0) {
+                that.getOrderHistory()
             }
             // 处理时间
             for (let i=0; i<res.data.result.length; i++) {
+              if (!res.data.result[i].ConsumeDatetime) {
+                // 没有 消费时间，则 显示支付时间
+                Vue.set(res.data.result[i], 'showPaymentDatetime', true)
+              }
               res.data.result[i].ConsumeDatetime = that.formatTime(res.data.result[i].ConsumeDatetime) 
               res.data.result[i].OrderDatetime = that.formatTime(res.data.result[i].OrderDatetime) 
               res.data.result[i].PaymentDatetime = that.formatTime(res.data.result[i].PaymentDatetime) 
               res.data.result[i].RefundDatetime = that.formatTime(res.data.result[i].RefundDatetime) 
+              // 标记 是否 退款 成功 【仅用于 当前页面 退款 成功后，置灰 退款 按钮】
+              Vue.set(res.data.result[i], 'hasRefund', false)
+            }
+            if (that.page == 2) {
+              // 如果 当前是第一页，清空 历史 记录, 在 此处 清空是为了 减小空白数据时间
+              that.orderList = []
             }
             that.orderList = that.orderList.concat(res.data.result)
           } else {
@@ -244,9 +273,13 @@ export default {
         }
       })
     },
-    refund (onlineorderid) {
+    refund (item) {
       // 退款
+      let onlineorderid = item.OnlineOrderID
       console.log('退款')
+      if (item.hasRefund) {
+        return false
+      }
       let that = this
       util.wXrequest({
         url: this.$store.state.ip + '/sync_service/online/order/checkRefund', 
@@ -259,13 +292,14 @@ export default {
         },
         success (res) {
           if (res.data.ret === '0') {
+            item.hasRefund = true // 隐藏 退款 按钮
             wx.showToast({
               title: '退款成功',
               icon: 'none',
               duration: 2000
             })
             // 页码 切为 1
-            that.page = 1
+            // that.page = 1
           } else {
             wx.showToast({
               title: '退款失败',
@@ -273,6 +307,8 @@ export default {
               duration: 2000
             })
           }
+          // 刷新 页面 数据， 此处模拟 切换 tab，实际为 刷新 效果
+          that.checkTitle(0)
         },
         fail () {
           wx.showToast({
@@ -292,12 +328,12 @@ export default {
       this.selectTitle = false
       this.titleIndex = index
       this.page = 1
-      this.orderList = []
+      // this.orderList = []
       this.allOrderFromOffline = []
       if (this.titleIndex === 1) {
         this.getAllOrderFromOffline()
       } else {
-        this.getOrderDetailById()
+        this.getOrderHistory()
       }
     },
     scrolltolower(e) {
@@ -306,7 +342,7 @@ export default {
         //  没有更多数据
         return false
       }
-      this.getOrderDetailById()
+      this.getOrderHistory()
     },
     toOrderDetail (onlineOrderID) {
       // 去订单详情
@@ -320,7 +356,10 @@ export default {
   },
   mounted () {
     console.log('mounted-----订单列表')
-    this.getOrderDetailById()
+    this.page = 1
+    this.titleIndex = 0
+    this.orderList = []
+    this.getOrderHistory()
     this.getCompanyMsg()
 
   }
@@ -334,7 +373,7 @@ export default {
   left 0
   right 0
   bottom 0
-  overFlow hidden
+  overflow hidden
   background $black
 .header
   position fixed
@@ -393,7 +432,7 @@ export default {
   left 0
   right 0
   bottom 0
-  overFlow hidden
+  overflow scoll
   z-index 1
 .headerCover
   height 45px
@@ -428,6 +467,16 @@ export default {
 .time-in
   font-size 12px
   color #b2b2b2
+.refund-btn
+  height 28px
+  line-height 28px
+  background $yellow
+  color #fff
+  text-align center
+  padding 0 10px
+  border-radius 3px
+.refund-btn.hasRefund
+  background #b2b2b2
 // 卡台商品单
 .offline-item
   background $brown

@@ -166,7 +166,7 @@ components: {
 	      })	        
 	},
   	toOrderDetail () {
-  		wx.navigateTo({
+  		wx.reLaunch({
 	        url: '/pages/orderDetail/main?onlineOrderID=' + this.order.OnlineOrderID
 	      })
 	}

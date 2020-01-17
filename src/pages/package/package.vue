@@ -13,6 +13,7 @@
           <div class="caseBox">
             <div class="caseButton"
                v-for="(item, index) in packages" 
+               v-if="(currentGood.OrderNumber+1) >= item.OrderNumber"
                :key="index"
                :class="{active: packageIndex===index}"
                @click="checkPackage(index)">
@@ -130,6 +131,7 @@ export default {
       let result = true
       if (this.packages[this.packageIndex] && this.packages[this.packageIndex].group) {
         for (let i=0; i<this.packages[this.packageIndex].group.length; i++) {
+
           let group = this.packages[this.packageIndex].group[i]
           let totalNum = 0
           for (let j=0; j<this.packages[this.packageIndex].detail.length; j++) {
@@ -203,12 +205,18 @@ export default {
             // 存储所有商品类别
             that.initPackage(res.data.result)
           } else {
-            that.KTVlist = []
+            that.packages = [{}]
             wx.showToast({
               title: res.data.msg || '',
               icon: 'none',
               duration: 2000
             })
+            // 直接 返回 上一级
+            let timer = setTimeout(() => {
+              clearTimeout(timer)
+              timer = null
+              wx.navigateBack()
+            }, 1000)
             console.log('返回码不是 0')
           }
         }
@@ -217,6 +225,7 @@ export default {
     initPackage (packages) {
       // 可选内容 group 加上 控制展开 show
       for (let i=0; i<packages.length; i++) {
+        packages[i].OrderNumber -= 0
         if (packages[i].group) {
           for (let j=0; j<packages[i].group.length; j++) {
             Vue.set( packages[i].group[j], 'show', true)
@@ -365,7 +374,7 @@ export default {
             // 子商品添加失败  执行删除 套餐
             util.delMymaterial()
             wx.showToast({
-              title: res.data.msg || '',
+              title: res.data.msg || '', 
               icon: 'none',
               duration: 2000
             })
@@ -377,7 +386,8 @@ export default {
     addCart () {
       this.$store.commit('setOnlineTempOrderID', 0)
       // 商品添加到 购物车，成功后 再添加 子商品
-      util.addCart()
+      // util.addCart()
+      util.addCart({})
     }
   },
   created () {
@@ -416,7 +426,7 @@ div
 // 可选方案
 .cases
   width 375px
-  overflow hidden
+  overflow scroll
   box-sizing border-box
 .caseBox
   white-space nowrap

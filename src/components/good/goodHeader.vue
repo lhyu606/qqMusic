@@ -3,7 +3,7 @@
     <div class="header" id="header">
       <div class="account">
         <div class="account-img">
-          <img :src="companyAndRoom.LogoUrl">
+          <img :src="companyAndRoom.LogoUrl"> 
         </div>
         <div class="account-msg">
           <div class="companyName">
@@ -16,14 +16,14 @@
               解绑
             </span>
           </div>
-          <div class="lowCharge">最低消费金额: ￥123</div>
+          <div class="lowCharge">最低消费金额: ￥{{companyAndRoom.LowWineCharge}}</div>
         </div>
       </div>
       <div class="buttons">
-      	<div class="orderlist" v-show="roomSetting.IsOpenOrderSheet == 1" @click="toOrderList">
+      	<div class="orderlist" v-if="roomSetting.IsOpenOrderSheet === '0'" @click="toOrderList">
       		<span class="buttons-text">账单</span>
       	</div>
-      	<div class="ordercheck" v-show="roomSetting.IsOpenAfterPay == 1" @click="toAfterPayList">
+      	<div class="ordercheck" v-if="roomSetting.IsOpenAfterPay === '0'" @click="toAfterPayList">
       		<span class="buttons-text">结账</span>
       	</div>
       </div>
@@ -39,7 +39,8 @@ export default {
   data () {
     return {
       companyAndRoom: {},
-      roomSetting: {}
+      roomSetting: {},
+      lowwinecharge: 0
     }
   },
 
@@ -47,43 +48,36 @@ export default {
     combo
   },
   computed: {
-    refreshCompanyAndRoom () {
-      return this.$store.state.refreshCompanyAndRoom
-    },
     clouduserid () {
       return this.$store.state.clouduserid
     }
   },
   watch: {
-    refreshCompanyAndRoom () {
-      console.log('需要请求 分店信息')
-      if (this.refreshCompanyAndRoom) {
-        this.$store.commit('setRefreshCompanyAndRoom', false)
-        // 刷新 分店 和 卡台信息
-        // this.getCompanyAndRoom()
-      }
-    }
   },
   methods: {
     getCompanyAndRoom () {
-    	// 查询 分店信息 和 绑定卡台
+      // 查询 分店信息 和 绑定卡台
       let that = this
       util.wXrequest({
-        url: this.$store.state.ip + '/wechat_order_service/public/getCompanyAndRoom', 
+        url: this.$store.state.ip + '/onlinemarket_service/public/getCompanyAndRoom', 
         data: {
-          wi: 1003,
           clouduserid: this.clouduserid,
-          requestInfo: ''
+          requestInfo: {}
+        },
+        header: {
+          'content-type': 'application/json; charset=UTF-8'
         },
         success(res) {
-          if (res.data.code === 0){
-          	that.companyAndRoom = res.data.result
-	          that.$store.commit('setCompanyAndRoom', that.companyAndRoom)
-	          that.getRoomSetting(that.companyAndRoom.CompanyID, that.companyAndRoom.RoomID)
-            // that.getCards()
+          if (res.data.code === '0'){
+            that.companyAndRoom = res.data.result
+            // 数字 0 显示为空，字符串 ‘0’ 正常
+            that.companyAndRoom.LowWineCharge += ''
+            that.$store.commit('setCompanyAndRoom', that.companyAndRoom)
+            // 查询 权限
+            that.querySysFunction(that.companyAndRoom.CompanyID)
           } else {
-          	console.log('返回码不是 0')
-          	// 去扫描绑定卡台
+            console.log('返回码不是 0')
+            // 去扫描绑定卡台
             wx.reLaunch({
               url: '/pages/scanQR/main'
             })
@@ -106,6 +100,8 @@ export default {
           if (res.data.code === 0){
           	that.roomSetting = res.data.result
             that.$store.commit('setRoomSetting', res.data.result)
+            console.log(that.roomSetting.IsOpenOrderSheet == 1)
+            console.log(that.roomSetting.IsOpenAfterPay == 1)
           }
         },
         fail (res) {
@@ -151,6 +147,29 @@ export default {
       })
       
     },
+    querySysFunction (companyid) {
+      // 查询 是否 开通在线商城权限
+      // 是否 拥有 在线商城权限，0 未查询，1 已查询 有权限，2 已查询 无权限
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/wechat_order_service/public/isOpenMarket?companyid=' + companyid,
+        method: 'get',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        success(res) {
+          if (res.data.code === 0) {
+            console.log('有权限')
+            that.$store.commit('setHasMarketFunction', 1)
+            that.getRoomSetting(that.companyAndRoom.CompanyID, that.companyAndRoom.RoomID)
+          } else {
+            that.$store.commit('setHasMarketFunction', 2)
+            console.log('没权限')
+            that.toError()
+          }
+        }
+      })
+    },
     toOrderList () {
       // 去订单列表
       wx.navigateTo({
@@ -162,10 +181,15 @@ export default {
       wx.navigateTo({
         url: '/pages/afterPayList/main'
       })
+    },
+    toError () {
+      // 去未结商品结账
+      wx.reLaunch({
+        url: '/pages/error/main'
+      })
     }
   },
   created () {
-    
   },
   mounted () {
     console.log('mounted-----googHeader')
@@ -174,7 +198,7 @@ export default {
     }
   },
   onShow () {
-    // 退出小程序后  没有 关闭，重新进入，就要刷新房态 变化
+    // 退出小程序后 没有 关闭，重新进入，就要刷新房态 变化
     if (this.$store.state.clouduserid) {
       this.getCompanyAndRoom()
     }
@@ -189,7 +213,7 @@ export default {
   width 375px
   height 99px
   position relative
-  background url('http://yjyf.evideo.net.cn/wechat_order_service/static/img/top_bg.f021e9d.png') 0 -3px
+  background url('https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/top_bg.png') 0 -3px
   background-size 375px 103px
   padding 10px 14px
   padding-right 90px

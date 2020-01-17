@@ -2,15 +2,15 @@
   <div class="shopCart">
     <div class="content">
       <!-- 小车 -->
-      <div class="cart" :class="{hasGood: cart.length > 0, bounceIn: addBounceIn}" @click="checkListBox">
-        <div class="cartNo" v-show="cart.length > 0">{{cartLength}}</div>
+      <div class="cart" :class="{hasGood: newCartList.length > 0, bounceIn: addBounceIn}" @click="checkListBox">
+        <div class="cartNo" v-show="newCartList.length > 0">{{cartLength}}</div>
       </div>
       <!-- 总计 -->
       <div class="totle">
-        <div class="text" v-show="cart.length > 0">总计：<span class="red">￥{{cartTotalMoney}}</span></div>
-        <div class="text red" v-show="cart.length == 0">购物车是空的</div>
+        <div class="text" v-show="newCartList.length > 0">总计：<span class="red">￥{{cartTotalMoney}}</span></div>
+        <div class="text red" v-show="newCartList.length == 0">购物车是空的</div>
       </div>
-      <div class="submit" :class="{hasGood: cart.length > 0}" @click="toPayList">选好了</div>
+      <div class="submit" :class="{hasGood: newCartList.length > 0}" @click="toPayList">选好了</div>
     </div>
   </div>
 </template>
@@ -21,25 +21,29 @@ export default {
     return {
       companyAndRoom: {},
       cartLengths: [],
-      addBounceIn: false
+      addBounceIn: false,
     }
   },
 
   computed: {
-    cart () {
+    cartList () {
       return this.$store.state.cartList
+    },
+    newCartList () {
+      let result = []
+      for (let key in this.cartList) {
+        for (let k in this.cartList[key]) {
+          result.push(this.cartList[key][k])
+        }        
+      }
+      return result
     },
     cartLength () {
       // 购物车 商品数量
       let length = 0
-      for (let i=0; i<this.cart.length; i++) {
-        if (this.cart[i]) {
-          for (let j=0; j<this.cart[i].length; j++) {
-            if (this.cart[i][j]) {
-              length += this.cart[i][j].OrderNumber
-            }
-          }
-        }
+      for (let i=0; i<this.newCartList.length; i++) {
+        length += this.newCartList[i].OrderNumber
+        console.log(this.newCartList[i])
       }
       return length
     },
@@ -51,28 +55,27 @@ export default {
   watch: {
     cartLength () {
       // 购物车动弹 动画
-      this.cartLengths.push(this.cartLength)
-      this.cartLengths.shift()
-      if (this.cartLengths[1] - this.cartLengths[0] > 0) {
-        let timer0 = setTimeout(() => {
-          clearTimeout(timer0)
-          timer0 = null
-          this.addBounceIn = true
-          let timer1 = setTimeout(() => {
-            clearTimeout(timer1)
-            timer1 = null
-            this.addBounceIn = false
-          }, 750)
-        }, 500)
-        
-      }
+      // this.cartLengths.push(this.cartLength)
+      // this.cartLengths.shift()
+      // if (this.cartLengths[1] - this.cartLengths[0] > 0) {
+      //   let timer0 = setTimeout(() => {
+      //     clearTimeout(timer0)
+      //     timer0 = null
+      //     this.addBounceIn = true
+      //     let timer1 = setTimeout(() => {
+      //       clearTimeout(timer1)
+      //       timer1 = null
+      //       this.addBounceIn = false
+      //     }, 750)
+      //   }, 500)
+      // }
     }
   },
   methods: {
     checkListBox () {
       // 打开购物车列表
       // 如果购物车为空，return false
-      if (this.cart.length === 0) {
+      if (this.newCartList.length === 0) {
         return false
       }
       this.$store.commit('setShowListBox', !this.$store.state.showListBox)
@@ -89,7 +92,7 @@ export default {
   },
   mounted () {
     console.log('mounted--------shopCart')
-    console.log(this.cart)
+    console.log(this.newCartList)
     // 初始 购物车数量变化
     this.cartLengths.push(this.cartLength)
     this.cartLengths.push(this.cartLength)

@@ -40,7 +40,7 @@
                     <div class="applyCard-list-item-top-check" @click="choiceIndex(indexOut)" :class="{active:indexCard==indexOut}"></div>
                     <div class="applyCard-list-item-top-card">
                         <img :src="itemOut.cardlogourl" v-show="itemOut.cardlogourl!==''">
-                        <img src="http://yjyf.evideo.net.cn/wechat_member/static/img/defaultCard.f77d83a.png" v-show="itemOut.cardlogourl===''">
+                        <img src="https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/defaultCard.png" v-show="itemOut.cardlogourl===''">
                     </div>
                     <div class="applyCard-list-item-top-name">{{itemOut.gradename}}</div>
                     <div class="applyCard-list-item-top-price" v-if="itemOut.choicePrice==-1">￥{{itemOut.sellmoney}}</div>
@@ -413,7 +413,7 @@ export default {
   left 0
   right 0
   bottom 70px
-  overflow hidden
+  overflow scroll
 .applyCard-list-item-wrapper
     .applyCard-list-item
         width 100%

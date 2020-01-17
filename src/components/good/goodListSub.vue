@@ -2,7 +2,7 @@
   <div>
             <!-- 商品列表 -->
             <div class="hasGood" v-show="goods.length > 0">
-              <div class="goodItem" v-for="(item, index) in goods" :key="item.MaterialID" @click="toGoodDetail(item)">
+              <div class="goodItem" v-for="(item, index) in goods" wx:key="MaterialID" @click="toGoodDetail(item)">
                 <div class="goodImg" v-if="item.Picture.length > 0">
                   <img :src="item.Picture[0].PictureUrl">
                 </div>
@@ -99,6 +99,8 @@ export default {
       if (this.canClick) {
         this.canClick = false
         let timer = setTimeout(() => {
+          clearTimeout(timer)
+          timer = null
           this.canClick = true
         }, 300)
       } else {
@@ -114,11 +116,16 @@ export default {
           this.toGoodDetail(item)
         } else {
         // 否则 添加购物车
-          util.addCart()
+          util.addCart({})
         }
       } else if (this.cartList[item.MaterialSortID][item.MaterialID].OrderNumber > 0) {
         // @param type 0: 数量减 1，1: 数量加 1，2: 口味变更
-        util.updateCart(1)
+        if (item.MealType == '3') {
+          // 可选套餐 去详情
+          this.toGoodDetail(item)
+        } else {
+          util.updateCart(1)
+        }
       }
     },
     goodDecrease (item) {
@@ -126,6 +133,8 @@ export default {
       if (this.canClick) {
         this.canClick = false
         let timer = setTimeout(() => {
+          clearTimeout(timer)
+          timer = null
           this.canClick = true
         }, 300)
       } else {
@@ -141,6 +150,53 @@ export default {
         util.updateCart(0)
       }
     },
+    getPackage (item) {
+      // 查询 套餐详情
+      let that = this
+      let data = {
+        wi: 1103,
+        clouduserid: this.$store.state.clouduserid,
+        requestInfo: {
+          MaterialID: item.MaterialID,
+          KmID: this.$store.state.ecard.ecardid || ''
+        }
+      }
+      util.wXrequest({
+        url: this.$store.state.ip + '/wechat_order_service/goods/getPackages', 
+        data: util.emulateJSON(data),
+        success(res) {
+          if (res.data.code === 0){
+            // 存储所有商品类别
+            console.log('res.data')
+            let goodPackage = res.data.result || []
+            let len = goodPackage.length
+            console.log(goodPackage, len)
+            if (len) {
+              for (let i=0; i<len; i++) {
+                console.log(parseInt(item.OrderNumber), parseInt(goodPackage[i].OrderNumber))
+                // 当前 商品数量 达到 最低点单数量 去套餐页
+                if (parseInt(item.OrderNumber) + 1 >= parseInt(goodPackage[i].OrderNumber)) {
+                  wx.navigateTo({
+                    url: '/pages/package/main'
+                  })
+                  return false
+                }
+              }
+              // 当前 商品数量 未到达 最低点单数量 直接当成 普通商品 数量加 1
+              util.addCart({
+                addSubGood: false
+              })
+            }
+          } else {
+            wx.showToast({
+              title: res.data.msg || '',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        }
+      })
+    },
     toGoodDetail (item) {
       // 去商品详情
       this.$store.commit('setCurrentGood', item)
@@ -148,11 +204,20 @@ export default {
       // 1 开房配送
       // 2 固定套餐
       // 3 可选套餐
-      if (item.MealType === '2' || item.MealType === '3') {
-        // 套餐
-        wx.navigateTo({
-          url: '/pages/package/main'
-        })
+
+      if (item.MealType == '2') {
+        // 2 固定套餐
+        console.log(item)
+        if (!this.cartList[item.MaterialSortID] || !this.cartList[item.MaterialSortID][item.MaterialID]) {
+          wx.navigateTo({
+            url: '/pages/package/main'
+          })
+        }
+      } else if (item.MealType == '3') {
+        // 3 可选套餐 
+        // 【最低 点单数量 k 】
+        // 点单一份当做普通商品直接加入购物车，当点单第k件商品时才弹出套餐方案
+        this.getPackage(item)
       } else {
         // 单品
         return false
@@ -173,17 +238,12 @@ export default {
         })
         return false
       }
-
-      // todo 需要根据购物车更新
-      // for (let i=0; i<item.sort_request.length; i++) {
-      //   Vue.set(item.sort_request[i], 'active', false)
-      // }
       this.$store.commit('setCurrentGood', item)
       this.$store.commit('setShowCombo', true)
     }
   },
   mounted () {
-    console.log('mounted--------goodListSub')
+    console.log('mounted--------goodListSub1')
     console.log(this.goods)
   }
 }

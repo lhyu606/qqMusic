@@ -24,7 +24,8 @@
               v-for="(item, index) in goodsType" 
               :class="{active: menu == index}"
               @click="checkMenu(index)"
-              :key="item.MaterialSortID">
+              wx:key="MaterialSortID"
+              >
               <div class="middle">
                 <span class="fireIcon" v-if="index == 0"></span>
                 {{item.MaterialSortName}}
@@ -69,8 +70,11 @@ export default {
       isTop: false,
       page: 1,
       pagesize: 20,
+      isLoadingGoods: false, // 是否在 加载数据
+      isLoadingTypes: false,
       dataOver: false,    // 数据加载完了
-      changeList: false   // 切换类型，切换价格类型
+      changeList: false,   // 切换类型，切换价格类型
+      prevGoodRequest: ''  // 前一次 请求参数
     }
   },
   computed: {
@@ -118,6 +122,8 @@ export default {
     },
     companyAndRoom () {
       // 获取到分店后再 请求卡列表
+      console.log('信息 遍历来计算两点间凯夫拉见识到了仿佛看见')
+      console.log(this.companyAndRoom)
       this.getCards()
     }
   },
@@ -126,6 +132,10 @@ export default {
   },
   methods: {
     getGoodsType () {
+      if (this.isLoadingTypes) {
+        return
+      }
+      this.isLoadingTypes = true
       // 查询 商品分类
       let that = this
       let data = {
@@ -147,8 +157,10 @@ export default {
             console.log('返回码不是 0')
             // 去扫描绑定卡台
           }
+          that.isLoadingTypes = false
         },
         fail (res) {
+          that.isLoadingTypes = false
           console.log(res)
         }
       })
@@ -157,13 +169,15 @@ export default {
       // 初始化 请求商品列表 参数
       this.page = 1
       this.dataOver = false
+      this.isLoadingGoods = false
       this.changeList = true
     },
     getGoodsBySort () {
       // 数据以全部加载，后续无需再加载
-      if (this.dataOver || this.menu == -1) {
+      if (this.dataOver || this.menu == -1 || this.goodsType.length == 0 || this.isLoadingGoods) {
         return false
       }
+      this.isLoadingGoods = true
       // 校验 menu 防止前一次数据还未加载完成，又进行下一次加载，导致错误发生
       let currentMenu = this.menu
       let materialSortID = this.goodsType[this.menu].MaterialSortID
@@ -180,6 +194,13 @@ export default {
         clouduserid: this.$store.state.clouduserid,
         requestInfo: requestInfo
       }
+      // 判断 请求参数 是否相同，相同时，不再请求
+      if (this.prevGoodRequest) {
+        if (this.prevGoodRequest == util.emulateJSON(data)) {
+          return
+        }
+      }
+      this.prevGoodRequest = util.emulateJSON(data)
       util.wXrequest({
         url: this.$store.state.ip + '/wechat_order_service/goods/getGoodsBySort',
         data: util.emulateJSON(data),
@@ -189,27 +210,36 @@ export default {
             return false
           }
           if (res.data.code === 0){
-            // 如果数量 小于 每页数量，数据以全部加载，后续无需再加载
-            if (res.data.result.length < that.pagesize) {
-              that.dataOver = true
-            }
-            // 存储所有商品类别
-            let goods = that.initGoods(res.data.result)
             // 切换类型，切换价格类型
-            if (that.changeList) {
+            if (that.changeList || that.page == 1) {
               // console.log('清空前一次')
               that.changeList = false
               that.goods = []
               that.$store.commit('setGoods', [])
             }
-            let totalGoods = goods//that.goods.concat(goods)
+            that.page++
+            // 如果数量 小于 每页数量，数据以全部加载，后续无需再加载
+            if (!res.data.result || res.data.result.length == 0) {
+              that.dataOver = true
+            }
+            // 如果 数量 小于 全屏 所需 最小 数量 则 不全屏
+            if (res.data.result.length < that.maxLength) {
+              that.isTop = false
+            }
+            // 存储所有商品类别
+            let goods = that.initGoods(res.data.result)
+            let totalGoods = that.goods.concat(goods)//goods
             that.$store.commit('setGoods', totalGoods)
+            that.isLoadingGoods = false
           } else {
+            that.isLoadingGoods = false
+            that.dataOver = true
             console.log('返回码不是 0')
             // 去扫描绑定卡台
           }
         },
         fail (res) {
+          that.isLoadingGoods = false
           console.log(res)
         }
       })
@@ -249,9 +279,8 @@ export default {
       return goods
     },
     loadMore () {
-      // console.log('请求更多')
       // 接 php 没有分页
-      return false
+      // return false
       this.getGoodsBySort()
     },
     // 商品列表滚动到顶部
@@ -300,7 +329,7 @@ export default {
     toSearchGood () {
       this.$store.commit('setGoodPageRefresh', false)
       // 搜索商品（模糊搜索）
-      wx.reLaunch({
+      wx.navigateTo({
         url: '/pages/searchGood/main'
       })
     },
@@ -310,6 +339,10 @@ export default {
     },
     getCards () {
       // 查询 会员卡
+      if (this.$store.state.clouduserid == '' || !this.companyAndRoom.CompanyID) {
+        // 如果没有 clouduserid 或者 没有 分店号 返回
+        return false
+      }
       let that = this
       util.wXrequest({
         url: this.$store.state.ip + '/yjmemberserver/member/list/clouduserid', 
@@ -323,14 +356,20 @@ export default {
         success(res) {
           if (res.data.ret === 0){
             that.cards = res.data.list
-            that.$store.commit('setCards', res.data.list)
             let i = 0
             that.cards = that.cards.filter(item => {
               return item.uselinemarket === 0
             })
-            // 后续还需要设置 主卡后 ，再请求 商品
-            that.getGoodsType()
-            that.setMaxLength()
+            that.$store.commit('setCards', res.data.list)
+            if (that.$store.state.setPrimaryCard || that.cards.length == 0) {
+              // 已设置 过主卡，不再操作
+              that.$store.commit('setSetPrimaryCard', true)
+              that.getGoodsType()
+              that.setMaxLength()
+            } else {
+              // 没有 设置过 主卡， 去 自动 选卡
+              that.getAndSetPrimaryCard()
+            }
           } else {
             console.log('返回码不是 0')
             // 去扫描绑定卡台 
@@ -338,6 +377,41 @@ export default {
         },
         fail (res) {
           console.log(res)
+        }
+      })
+    },
+    getAndSetPrimaryCard () {
+      // 查询 主卡，有 主卡，则 选 主卡，没有 主卡， 选 第一张 卡
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/Member/Integration/getAndSetPrimaryCard', 
+        data: {
+          clouduserid: this.$store.state.clouduserid,
+          shopno: this.companyAndRoom.CompanyID,
+          headShopNo: this.$store.state.headShopNo,
+          type: 1
+        },
+        header: {
+          'content-type': 'application/json;charset=UTF-8' // 默认值
+        },
+        success(res) {
+          if (res.data.ret === 0){
+            that.$store.commit('setSetPrimaryCard', true)
+            // 默认 取 第一张 卡 或者 {}
+            let primaryCard = that.cards[0] || {}
+            that.cards.forEach((item, index) => {
+              if (item.ecardid === res.data.data.ecardid) {
+                // 有主卡 设置主卡
+                primaryCard = item
+              }
+            })
+            that.$store.commit('setEcard', primaryCard)
+            that.getGoodsType()
+            that.setMaxLength()
+          } else {
+            console.log('返回码不是 0')
+            // 设置 主卡失败
+          }
         }
       })
     }
@@ -353,6 +427,12 @@ export default {
     }
     // this.getGoodsType()
     // this.setMaxLength()
+  },
+  onHide () {
+    this.prevGoodRequest = ''
+  },
+  onUnload () {
+    this.prevGoodRequest = ''
   }
 }
   
@@ -375,6 +455,7 @@ export default {
   top 0
   left 0px
   bottom 0
+  overflow scroll
   width 100px
   color #333333
 .rightScroll
@@ -383,6 +464,7 @@ export default {
   right 0px
   bottom 0
   width 270px
+  overflow scroll
   background: #201c19
 .content
   text-align center

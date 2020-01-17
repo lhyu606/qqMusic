@@ -5,18 +5,12 @@ export default {
     this.getSystemInfoSync()
   },
   mounted () {
-    var pages = getCurrentPages()    //获取加载的页面
-    var currentPage = pages[pages.length-1]    //获取当前页面的对象
-    console.log('currentPage')
-    console.log(currentPage)
-
   },
   methods: {
     getSystemInfoSync() {
       // 获取微信窗口信息
       let systemInfo = wx.getSystemInfoSync()
       this.$store.commit('setSystemInfo', systemInfo)
-      console.log(systemInfo)
     }
   }
 }

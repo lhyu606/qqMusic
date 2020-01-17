@@ -144,6 +144,9 @@ export default {
       }, duration)
     },
     getgoodList () {
+      if (this.word == '') {
+        return
+      }
       let sourceWord = this.word
       let word = encodeURIComponent(this.word)
       let data = {

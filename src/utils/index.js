@@ -54,7 +54,7 @@ function emulateJSON (obj, first = '') {
   let result = []
   let item = ''
   for (let key in obj) {
-    if (Object.prototype.toString.call(obj[key]).slice(8, -1) === 'Object') {
+    if (getDataType(obj[key]) === 'Object') {
       result.push(emulateJSON(obj[key], key))
     } else {
       if (first == '') {
@@ -69,6 +69,44 @@ function emulateJSON (obj, first = '') {
   return result.join('&')
 }
 
+// 请求 白名单
+let whiteRequestList = [
+  'api.map.baidu.com',
+  'yjmemberserver/company/list/ecard',
+  'yjmemberserver/company/list/ecardByCompanyName',
+  'onlinemarket_service/public/unbind',
+  'public/roomSetting',
+  'onlinemarket_service/public/getHeadShopNoByCompanyCode',
+  'onlinemarket_service/public/getCompanyListOpenMarket',
+  'onlinemarket_service/public/getCompanyListOpenMarketByCompanyName',
+  'onlinemarket_service/miniProgram/login',
+  'onlinemarket_service/goods/getGoodsByIds',
+  'onlinemarket_service/public/getCompanyAndRoom',
+  'wechat_order_service/public/isOpenMarket',
+  'onlinemarket_service/cart/getCatalog',
+  'onlinemarket_service/public/bindRoom',
+  'yjmemberserver/member/list/clouduserid',
+  'wechat_order_service/goods/getGoodsType',
+  'wechat_order_service/goods/getGoodsBySort',
+  'wechat_order_service/goods/getPackages',
+  'onlinemarket_service/miniProgram/decryptPhoneAndRegist',
+  'onlinemarket_service/miniProgram/getCloudUserIDForMiniProgram'
+]
+function checkWhiteList (url) {
+  let result = false
+  let len = whiteRequestList.length
+  let subUrl = '' 
+  for (let i=0; i<len; i++) {
+    subUrl = whiteRequestList[i]
+    if (url.includes(subUrl)) {
+      result = true
+      break
+    }
+  }
+  return result
+}
+
+let hideLoadingTimer = null
 /* 封装微信 http 请求 */
 function wXrequest({
   url, 
@@ -83,11 +121,45 @@ function wXrequest({
   },
   title= '加载中...'
 }) {
+  // 白名单 允许 的 请求 接口 列表
+  // if (!checkWhiteList(url)) {
+  //   // 如果 没有账户【即 未获取 手机号】 则 需要 注册
+  //   // 如果 没有 headShopNo 则需要 先 跳 到 选商家 否则 直接 注册
+
+  //   if (store.state.headShopNo == '') {console.log('没有headShopNo')
+  //     wx.navigateTo({
+  //       url: '/pages/shopList/main'
+  //     })
+  //     return false
+  //   } else {
+  //     // 如果 没有账户
+  //     // 电话号码 必须 是 11位数字，否则 是临时分配【 例：YJ_1576113747125 】，需要注册
+  //     let VirtualReg = /^\d{11}$/ 
+  //     if (!VirtualReg.test(store.state.tel)) {console.log('没有 电话')
+  //       wx.reLaunch({
+  //         url: '/pages/register/main'
+  //       })
+  //       return false
+  //     }
+  //   }
+  // }
+  
   // 显示 加载中
   wx.showLoading({
     title: title,
     mask: true
   })
+  // 无论 结果如何，30 秒后都隐藏 加载中 遮罩层
+  if (hideLoadingTimer) {
+    clearTimeout(hideLoadingTimer)
+    hideLoadingTimer = null
+  }
+  hideLoadingTimer = setTimeout(() => {
+    clearTimeout(hideLoadingTimer)
+    hideLoadingTimer = null
+    wx.hideLoading()
+  }, 1000 * 30)
+
   wx.request({
     url: url, 
     data: data,
@@ -140,7 +212,7 @@ function getCurrentPageUrlWithArgs(){
 }
  
 /* 更新购物车 */ 
-function getCatalog () {
+function getCatalog () {console.log('000000')
   wXrequest({
     url: store.state.ip + '/onlinemarket_service/cart/getCatalog',
     data: {
@@ -152,7 +224,7 @@ function getCatalog () {
     success (res) {
       if (res.data.code === '0') {
         _sortCartList(res.data.result.list)
-        _updateCurrentGoods()
+        // _updateCurrentGoods()
         // store.commit('setCartList', res.data.result.list)
         store.commit('setCartTotalMoney', res.data.result.totalMoney)
       }
@@ -161,16 +233,23 @@ function getCatalog () {
 }
 /* 分类 处理 购物车数据 */ 
 function _sortCartList (list) {
-  let result = []
+  let result = {}
+  let num = 0
   for (let i=0,len=list.length; i<len; i++) {
+    num++
     let item = list[i]
+    if (store.state.companyAndRoom.CompanyID != item.CompanyID) {
+      // 不是 该分店的，不展示
+      continue
+    }
     // 口味去掉 最后 【,】
     // item.MaterialRequestName = item.MaterialRequestName.slice(0, -1)
-    // 计算单个商品 总价
-    item.totalPrice = parseFloat(item.OrderNumber * item.SellPrice)
+    // 计算单个商品 总价  Math.floor(15.7784514000 * 100) / 100 
+    // item.totalPrice = parseFloat(item.OrderNumber * item.SellPrice)
+    item.totalPrice = Math.floor(item.OrderNumber * item.SellPrice * 100) / 100
     if (!result[item.MaterialSortID]) {
       // 有该没有该分类分类
-      Vue.set(result, item.MaterialSortID, [])
+      Vue.set(result, item.MaterialSortID, {})
     }
     Vue.set(result[item.MaterialSortID], item.MaterialID, item)
   }
@@ -226,7 +305,7 @@ function comfirmCombo () {
   if (!cartList[currentGood.MaterialSortID] || !cartList[currentGood.MaterialSortID][currentGood.MaterialID]) {
     // 没有 该商品 更新购物车
     console.log('确认口味，没有该商品')
-    addCart()
+    addCart({})
   } else {
     // 有 该商品 添加购物车
     console.log('确认口味，有该商品')
@@ -296,7 +375,9 @@ function updateCart(type) {
   })
 }
 /* 添加购物车 【从 0 到 1，】*/
-function addCart() {
+function addCart({
+  addSubGood = true
+}) {
   console.log('添加购物车')
   let currentGood = store.state.currentGood
   // 组织 口味
@@ -350,7 +431,7 @@ function addCart() {
         currentGood.OrderNumber = 1
         store.commit('setCurrentGood', currentGood)
         // 商品类型 0 普通商品 1 开房配送 2 固定套餐 3 可选套餐
-        if (currentGood.MealType != 0) {
+        if (currentGood.MealType != 0 && addSubGood) {
           store.commit('setPackageAddCart', true)
         }
       } else {
@@ -437,6 +518,16 @@ function clearCart () {
 }
 // 更新购物车 价格 /cart/updateCartPrice
 function updateCartPrice () {
+  // 购物车 为空 不刷新
+  let result = []
+  for (let key in this.cartList) {
+    for (let k in this.cartList[key]) {
+      result.push(this.cartList[key][k])
+    }        
+  }
+  if (result.length == 0) {
+    return false
+  }
   // 删除购物车
   wXrequest({
     url: store.state.ip + '/onlinemarket_service/cart/updateCartPrice',
@@ -467,6 +558,7 @@ function updateCartPrice () {
 }
 
 export default {
+  getDataType,
   formatNumber,
   formatTime,
   getRandomSubArr,

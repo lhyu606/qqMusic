@@ -11,7 +11,7 @@
             <div>
                 <div class="selectKTV-list-item" 
                   v-for="(item, index) in KTVlist" 
-                  @click="toGoodList(item)" 
+                  @click="toLogin(item)" 
                   :style="{background: item.color}"
                   :key="index">
                     <div class="selectKTV-list-item-pic">
@@ -66,11 +66,12 @@ export default {
         return false
       }
       util.wXrequest({
-        url: this.$store.state.ip + '/yjmemberserver/company/list/ecardByCompanyName', 
+        url: this.$store.state.ip + '/onlinemarket_service/public/getCompanyListOpenMarketByCompanyName', 
+        // url: this.$store.state.ip + '/yjmemberserver/company/list/ecardByCompanyName', 
         data: {
           companyname: that.searchWord,
           count: 1000,
-          regioncode: "3501",
+          regioncode: that.regioncode,
           start: 0
         },
         header: {
@@ -79,13 +80,10 @@ export default {
         success(res) {
           console.log('res.data')
           console.log(res.data)
-          if (res.data.ret === 0){
+          if (res.data.code === '0'){
             // 存储所有商品类别
-            that.KTVlist = res.data.data
-            that.KTVlist = that.KTVlist.concat(res.data.data)
-            that.KTVlist = that.KTVlist.concat(res.data.data)
-            console.log('that.KTVlist')
-            console.log(that.KTVlist)
+            that.KTVlist = res.data.result
+            // that.KTVlist = that.KTVlist.concat(res.data.data)
           } else {
             that.KTVlist = []
             wx.showToast({
@@ -98,8 +96,10 @@ export default {
         }
       })
     },
-    toGoodList () {
+    toLogin (item) {
       // 去购物  reLaunch
+      this.$store.commit('setHeadShopNo', item.officeid)
+      wx.setStorageSync('headShopNo', item.officeid)
       wx.navigateTo({
         url: '/pages/good/main'
       })
@@ -110,6 +110,8 @@ export default {
   },
   mounted () {
     console.log('mounted--------选择商家')
+    let options = util.getCurrentPageOptions()
+    this.regioncode = parseInt(options.regioncode) 
   }
 }
 // http://yjtest.evideo.net.cn/wechat_order_service/Public/images/area.png
@@ -155,7 +157,7 @@ export default {
             left 0
             width 100%
             bottom 0
-            overflow hidden
+            overflow scroll
             .selectKTV-list-item
                 width 100%
                 height 70px

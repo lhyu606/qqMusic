@@ -45,6 +45,7 @@ import util from '@/utils/index'
 export default {
   data () {
     return {
+      ip: '',
       rechargeList: [],
       fixedRechargeList: [],
       freeRechargeList: [],
@@ -74,6 +75,28 @@ export default {
     }
   },
   methods: {
+    getIP () {
+      // IP地址查询接口
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/Member/Integration/getIp',
+        data: {
+          clouduserid: this.clouduserid,
+        },
+        header: {
+          'Content-Type':'application/json; charset=utf-8'
+        },
+        success(res) {
+          //  获取 ip  成功
+          if (res.data.ret == 0) {
+            that.ip = res.data.ip
+          } else {
+            // 失败
+            console.log('获取 ip 失败')
+          }
+        }
+      })
+    },
     getRechargeRules () {
       // 获取 充值 规则
       let that = this
@@ -81,7 +104,7 @@ export default {
         url: this.$store.state.ip + '/yjmemberserver/member/recharge/rule',
         data: {
           gradeid: this.ecard.gradeid,
-          shopno: this.companyAndRoom.CompanyID
+          shopno: this.ecard.companyid
         },
         header: {
           'Content-Type':'application/json; charset=utf-8'
@@ -90,10 +113,11 @@ export default {
           if (res.data.ret == 0) {
             // 返回码是 0
             that.rechargeList = res.data.data
+            that.fixedRechargeList = []
+            that.freeRechargeList = []
             res.data.data.forEach((item, index) => {
               if (item.ruletype == 2) {
                 // 确切充值方案
-                that.fixedRechargeList.push(item)
                 that.fixedRechargeList.push(item)
               }
               if (item.ruletype == 2) {
@@ -168,7 +192,77 @@ export default {
     },
     comfirmRecharge (ruleid, cashmoney, presentmoney) {
       // 确认充值 
+      let that = this
+      // userType 用户类型 0 微信公众好用户 1 小程序用户
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/member/recharge',
+        data: {
+          ecardid: this.ecard.ecardid,
+          ordertype: 2,
+          ruleid: ruleid,
+          cashmoney: cashmoney,
+          presentmoney: presentmoney,
+          shopno: this.ecard.companyid,
+          ip: this.ip,
+          kmnotifyurl: this.$store.state.ip + '/wechat_member/#/cardDetail?ecardid=' + this.ecard.ecardid + '&clouduserid=' + this.$store.state.clouduserid + '&shopNo=' + this.ecard.companyid ,
+          merchanturl: util.getCurrentPageUrl(),
+          userType: 1
+        },
+        header: {
+          'Content-Type':'application/json; charset=utf-8'
+        },
+        success(res) {
+          if (res.data.ret == 0) {
+            // 返回码是 0
+            if (res.data && res.data.data && res.data.data.result && res.data.data.result.paypackage) {
+              that.callUpWxPay(res.data.data.result.paypackage)
+            }
+          } else {
+            console.log('返回码 不是 0')
+            if (res.data.msg != '') {
+              wx.showToast({
+                title: res.data.msg || '充值失败',
+                icon: 'none',
+                duration: 2000
+              })
+            }
+          }
+        }
+      })
       console.log(ruleid, cashmoney, presentmoney)
+    },
+    callUpWxPay (payParam) {
+      let that = this
+      // 唤起 小程序 支付 api
+      console.log('支付参数：', payParam)
+      wx.requestPayment(
+      {
+        'timeStamp': payParam.timeStamp,
+        'nonceStr': payParam.nonceStr,
+        'package': payParam.package,
+        'signType': payParam.signType,
+        'paySign': payParam.paySign,
+        success: function(res){
+          console.log('充值成功')
+          wx.showToast({
+            title: '充值成功',
+            icon: 'success',
+            duration: 2000
+          })
+          // 去 商品 页
+          wx.reLaunch({
+            url: '/pages/good/main'
+          })
+        },
+        fail: function(res){
+          console.log('充值失败')
+          wx.showToast({
+            title: '充值失败',
+            icon: 'cancel',
+            duration: 2000
+          })
+        }
+      }) 
     },
     checkRule (index) {
       // 切换 充值 方式
@@ -181,6 +275,7 @@ export default {
   },
   mounted () {
     console.log('mounted--------充值begin')
+    this.getIP()
     this.getRechargeRules()
   }
 }

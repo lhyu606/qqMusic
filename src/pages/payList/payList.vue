@@ -185,6 +185,8 @@ export default {
                 duration: 2000
               })
               let timer = setTimeout(() => {
+                clearTimeout(timer)
+                timer = null
                 wx.reLaunch({
                   url: '/pages/good/main'
                 })
@@ -218,6 +220,11 @@ export default {
       let result = []
       for (let i=0; i<this.cartDetail.length; i++) {
         result.push(this.cartDetail[i].OnlineTempOrderID)
+        if (this.cartDetail[i].hasOwnProperty('ChlidList') && this.cartDetail[i].ChlidList.length > 0) {
+          this.cartDetail[i].ChlidList.forEach(itemIn => {
+            result.push(itemIn.OnlineTempOrderID)
+          })
+        }
       }
       return result
     }
@@ -274,7 +281,7 @@ div
 // body
 .body
   flex 1 1 auto
-  overflow hidden
+  overflow scroll 
   background #201c19
 .pt20
   height 20px

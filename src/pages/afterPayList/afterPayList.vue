@@ -12,7 +12,18 @@
         </div>
       </div>
       <!-- body -->
-      <scroll-view scroll-y="true" class="body">
+        <!-- 无商品 -->
+      <scroll-view scroll-y="true" class="body" v-if="cartDetail.length == 0">
+        <div class="pt20"></div>
+        <div class="listnone"> 
+          <div class="noneImg text-c">
+            <img src="../../../static/nothingPic.png">
+          </div>
+          <div class="noneText text-c colb2 fs14">暂时没有未结商品</div>
+        </div>
+      </scroll-view>
+        <!-- 有商品 -->
+      <scroll-view scroll-y="true" class="body" v-if="cartDetail.length > 0">
         <div class="pt20"></div>
         <!-- 商品列表 -->
         <div class="linetb plr10">
@@ -32,11 +43,11 @@
         </div>
         <div class="pt20"></div>
         <!-- 备注 -->
-        <div class="remark linetb plr10 colYellow lh20 fs14">
+        <div class="remark linetb plr10 colYellow lh20 fs14" v-if="uncheckData.checkoutremark">
           <div class="">备注：</div>
           <div class="text-r">{{uncheckData.checkoutremark}}</div>
         </div>
-        <div class="pt20"></div>
+        <div class="pt20" v-if="uncheckData.checkoutremark"></div>
         <!-- 支付方式 -->
         <div class="linetb lh40 fs14">
           <div class="plr20">
@@ -62,7 +73,7 @@
         <div class="pt20"></div>
       </scroll-view>
       <!-- footer -->
-      <div class="footer">
+      <div class="footer" v-if="cartDetail.length > 0">
         <div class="noAfter">
           <div class="totlePrice">需支付：￥{{uncheckData.checkoutpaymoney}}</div>
           <div class="obutton" @click="toAfterPay()">下单支付</div>
@@ -77,7 +88,7 @@ export default {
   data () {
     return {
       uncheckData: {},  // 未结账单
-      cartDetail: [{}], // 商品列表
+      cartDetail: [], // 商品列表
       payMode: 1    // 1 微信支付 0 会员卡支付
     }
   },
@@ -114,12 +125,10 @@ export default {
           console.log(res.data)
           if (res.data.ret === '0'){
             // 存储所有商品类别
-            that.uncheckData = res.data.data
-            that.cartDetail = res.data.data.uncheckwinedetaillist
-            console.log('that.cartDetail')
-            console.log(that.cartDetail)
+            that.uncheckData = res.data.data || {}
+            that.cartDetail = that.uncheckData.uncheckwinedetaillist || []
           } else {
-            that.cartDetail = [{}]
+            that.cartDetail = []
             wx.showToast({
               title: res.data.msg || '',
               icon: 'none',
@@ -131,7 +140,6 @@ export default {
       })
     },
     checkPayMode (payMode) {
-      console.log(payMode)
       // 切换支付方式
       this.payMode = payMode
     },
@@ -156,11 +164,9 @@ export default {
         },
         success(res) {
           if (res.data.ret === '0') {
-            // 清空购物车
-            util.clearCart() 
             // 去支付
-            wx.navigateTo({
-              url: '/pages/afterPayReady/main?payMode=' + that  .payMode + '&onlineOrderID=' + res.data.data.onlineorderid
+            wx.reLaunch({
+              url: '/pages/afterPayReady/main?payMode=' + that.payMode + '&onlineOrderID=' + res.data.data.onlineorderid + '&winelistidlist=' + that.uncheckData.winelistidlist
             })
           } else {
             wx.showToast({
@@ -181,10 +187,10 @@ export default {
     }
   },
   created () {
-    console.log('page-----购物车详情')
+    console.log('page-----后结购物车详情')
   },
   mounted () {
-    console.log(this.roomSetting)
+    console.log('mounted------后结购物车详情')
     this.getUnCheckoutOrderFromOffline()
   }
 }
@@ -235,6 +241,11 @@ div
   flex 1 1 auto
   overflow scroll
   background #201c19
+.noneImg
+  padding 20px 0 0
+.noneImg img
+  width 190px
+  height 190px
 .pt20
   height 20px
   background #201c19

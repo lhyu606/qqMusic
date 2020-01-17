@@ -6,15 +6,15 @@
     <div class="lh50 colYellow plr10 fs16 bgBrown">
       <div class="flexlr">
         <div class="left">商品名称</div>
-        <div class="right text-r">会员充值</div>
+        <div class="right text-r">{{ordername}}</div>
       </div>
       <div class="flexlr borderT">
         <div class="left">支付金额</div>
-        <div class="right text-r">￥1</div>
+        <div class="right text-r">￥{{money}}</div>
       </div>
     </div>
     <div class="pt20"></div>
-    <div class="botton">
+    <div class="botton" @click="payCard">
       确认支付
     </div>
   </div>
@@ -24,7 +24,10 @@ import util from '@/utils/index'
 export default {
   data () {
     return {
-
+      ip: '',
+      orderno: '',
+      ordername: '',
+      money: 0
     }
   },
 
@@ -46,13 +49,124 @@ export default {
 
   },
   methods: {
+    getIP () {
+      // IP地址查询接口
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/Member/Integration/getIp',
+        data: {
+          clouduserid: this.clouduserid,
+        },
+        header: {
+          'Content-Type':'application/json; charset=utf-8'
+        },
+        success(res) {
+          //  获取 ip  成功
+          if (res.data.ret == 0) {
+            that.ip = res.data.ip
+          } else {
+            // 失败
+            console.log('获取 ip 失败')
+          }
+        }
+      })
+    },
+    payCard () {
+      // 确认 支付
+      // userType 0 微信公众好用户  1 小程序用户
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/member/pay',
+        data: {
+          ip: this.ip,
+          orderno: this.orderno,
+          type: 'JSAPI',
+          shopno: this.companyAndRoom.CompanyID,
+          money: this.money,
+          kmnotifyurl: this.$store.state.ip + '/wechat_member/#/cardDetail?orderno=' + this.orderno+ '&clouduserid=' + this.clouduserid,
+          merchanturl: util.getCurrentPageUrl(),
+          userType: 1
+        },
+        header: {
+          'Content-Type':'application/json; charset=utf-8'
+        },
+        success(res) {
+          if (res.data.ret == 0) {
+          //  获取 支付参数  成功
+            if (res.data.data.result && res.data.data.result.paypackage) {
+              that.callUpWxPay(res.data.data.result.paypackage)
+            } else {
+              wx.showToast({
+                title: res.data.msg || '发起支付失败',
+                icon: 'none',
+                duration: 2000
+              })
+            }
+          } else {
+            wx.showToast({
+              title: res.data.msg || '发起支付失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        },
+        fail (res) {
+          wx.showToast({
+            title: '发起支付失败',
+            icon: 'cancel',
+            duration: 2000
+          })
+        }
+      })
+    },
+    callUpWxPay (payParam) {
+      let that = this
+      // 唤起 小程序 支付 api
+      console.log('支付参数：', payParam)
+      wx.requestPayment(
+      {
+        'timeStamp': payParam.timeStamp,
+        'nonceStr': payParam.nonceStr,
+        'package': payParam.package,
+        'signType': payParam.signType,
+        'paySign': payParam.paySign,
+        success: function(res){
+          console.log('支付成功')
+          wx.showToast({
+            title: '支付成功',
+            icon: 'success',
+            duration: 2000
+          })
+          let timer = setTimeout(() => {
+            clearTimeout(timer)
+            timer = null
+            wx.reLaunch({
+              url: '/pages/good/main'
+            })
+          }, 2000)
+        },
+        fail: function(res){
+          console.log('支付失败')
+          wx.showToast({
+            title: '支付失败',
+            icon: 'cancel',
+            duration: 2000
+          })
+        }
+      }) 
+    }
   },
   created () {
     console.log('page--------购卡充值begin')
   },
   mounted () {
     console.log('mounted--------购卡充值begin')
-    console.log(this.applyCard)
+    // 获取支付方式 订单id
+    let options = util.getCurrentPageOptions()
+    this.orderno = options.orderno
+    this.ordername = options.ordername
+    this.money = options.money
+    this.getIP()
   }
 }
 </script>

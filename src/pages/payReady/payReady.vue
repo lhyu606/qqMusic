@@ -1,4 +1,5 @@
 <template>
+  <div class="">
   <scroll-view scroll-y="true" class="contain">
     <div class="tip lh30 fs15">
       <img src="../../../static/tip.png" class="tipPic">付款可能存在延时，请勿重复支付噢！
@@ -102,7 +103,7 @@
             <div class="pt10"></div>
           </div>
           <div class="footer flexlr text-c lh50">
-            <div class="cancel" @click="closePasswordPay">取消</div>
+            <div class="cancel" @click="closeMessagePay">取消</div>
             <div class="comfirm" @click="memberVerifyPay">确定</div>
           </div>
         </div>
@@ -110,6 +111,11 @@
     </div>
     <!-- 手机验证码支付 -->
   </scroll-view>
+  <!-- 提示 -->
+  <div class="litToast" v-if="showTip">
+    {{tip}}
+  </div>
+  </div>
 </template>
 <script>
 import util from '@/utils/index'
@@ -125,7 +131,11 @@ export default {
       password: '',    // 支付密码
       messageWord: '',  // 手机验证码
       cutDown: 60,       // 倒计时
-      showCutDown: false // 展示倒计时
+      showCutDown: false, // 展示倒计时
+
+      tip: '',
+      showTip: false,
+      timer: null
     }
   },
 
@@ -244,15 +254,27 @@ export default {
             } else {
               // 结果 错误
               console.log('K米 返回结果错误')
+              wx.showToast({
+                title: '发起支付失败',
+                icon: 'none',
+                duration: 2000
+              })
             }
           } else {
             wx.showToast({
-              title: res.data.msg || '',
+              title: res.data.msg || '发起支付失败',
               icon: 'none',
               duration: 2000
             })
             console.log('返回码不是 0')
           }
+        },
+        fail (res) {
+          wx.showToast({
+            title: '发起支付失败',
+            icon: 'none',
+            duration: 2000
+          })
         }
       })
     },
@@ -268,13 +290,13 @@ export default {
         'signType': payParam.signType,
         'paySign': payParam.paySign,
         success: function(res){
-          console.log('支付成功')
           wx.showToast({
             title: '支付成功',
             icon: 'success',
             duration: 2000
           })
-          wx.reLaunch({
+          console.log('支付成功')
+          wx.navigateTo({
             url: '/pages/paySuccess/main?onlineOrderID=' + that.onlineOrderID
           })
         },
@@ -467,11 +489,13 @@ export default {
             })
           } else {
             console.log('返回码不是 0')
-            wx.showToast({
-              title: res.data.msg || '支付失败',
-              icon: 'none',
-              duration: 2000
-            })
+            // wx.showToast({
+            //   title: res.data.msg || '支付失败',
+            //   icon: 'none',
+            //   duration: 2000
+            // })
+            let content = res.data.msg || '支付失败'
+            that.openPop(content)
           }
         }
       })
@@ -500,6 +524,20 @@ export default {
     },
     stopPropagation () {
       // 阻止冒泡
+    },
+    openPop (content) {
+      // 展示 提示 内容
+      this.tip = content
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      }
+      this.showTip = true
+      this.timer = setTimeout(() => {
+        clearTimeout(this.timer)
+        this.timer = null
+        this.showTip = false
+      }, 2000)
     }
   },
   created () {
@@ -560,7 +598,7 @@ export default {
 .imgBox
   flex 0 0 80px
   height 50px
-  background url('http://yjyf.evideo.net.cn/wechat_order_service/static/img/pink.a1e7c1c.png') no-repeat
+  background url('https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/pink.png') no-repeat
   background-size 80px 50px
   border-radius 5px
   text-align center
@@ -637,4 +675,17 @@ export default {
   color white
   line-height 30px
   border-radius 4px
+.litToast
+  max-width 90%
+  min-height 20px
+  position fixed
+  top 50%
+  left 50%
+  transform translate(-50%, -50%)
+  padding 3px 4px
+  background rgba(0, 0, 0, 0.8)
+  color #fff
+  line-height 20px
+  font-size 16px
+  text-align center
 </style>

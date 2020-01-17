@@ -12,7 +12,7 @@
         </div>
       </div>
       <!-- 内容 -->
-      <div class="body">
+      <scroll-view scroll-y="true" class="body">
         <!-- 第一模块 -->
         <div class="pt20"></div>
         <div class="borderTB plr10 bgBrown">
@@ -54,7 +54,7 @@
           <div class="plr10 lh25 fs13">
             <div class="flexlr">
               <span class="bottom-left">订单编号</span>
-              <span class="bottom-right">{{orderDetail.OrderNo}}</span>
+              <span class="bottom-right">{{orderDetail.OrderNo}}</span> 
             </div>
             <div class="flexlr">
               <span class="bottom-left">交易时间</span>
@@ -89,9 +89,11 @@
           </div>
           <div class="pt20"></div>
           <div class="button" @click="toPayReady">确认支付</div>
+          <div class="pt20"></div>
+          <div class="pt20"></div>
         </div>
         <!-- 支付 -->
-      </div>
+      </scroll-view>
       <!-- 内容 -->
     </div>
   </div>
@@ -189,6 +191,7 @@ export default {
   },
   mounted () {
     // 获取支付方式 订单id
+    console.log('mounted--------订单详情')
     let options = util.getCurrentPageOptions()
     this.onlineOrderID = parseInt(options.onlineOrderID)
 
@@ -240,7 +243,7 @@ div
 // body
 .body
   flex 1 1 auto
-  overflow hidden
+  overflow scroll
   background #201c19
 .bottom-left
   flex 0 0 80px

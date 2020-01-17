@@ -12,7 +12,7 @@
             <div>
                 <div class="selectKTV-list-item" 
                   v-for="(item, index) in KTVlist" 
-                  @click="toGoodList(item)" 
+                  @click="toLogin(item)" 
                   :style="{background: item.color}"
                   :key="index">
                     <div class="selectKTV-list-item-pic">
@@ -47,7 +47,7 @@ export default {
       let that = this
       // 获取 地址 再获取 经纬度 再获取 行政编码
       util.wXrequest({
-        url: 'http://api.map.baidu.com/location/ip?ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z',
+        url: 'https://api.map.baidu.com/location/ip?ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z',
         data: {
           params: {},
           jsonp: 'callback'
@@ -61,7 +61,7 @@ export default {
             response = response.substr(0, response.length - 1)
           }
           util.wXrequest({
-            url: 'http://api.map.baidu.com/geocoding/v3/?address=' + addressRes.data.content.address + '&output=json&ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z&callback=showLocation',
+            url: 'https://api.map.baidu.com/geocoding/v3/?address=' + addressRes.data.content.address + '&output=json&ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z&callback=showLocation',
             success (res) {
               let result = res.data + ''
               result = result.replace(/.*\{/, '')
@@ -69,7 +69,7 @@ export default {
               result = '{' + result + '}'
               result = JSON.parse(result)
               util.wXrequest({
-                url: 'http://api.map.baidu.com/reverse_geocoding/v3/?ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z&output=json&coordtype=wgs84ll&location=' + result.lat + ',' + result.lng + '',
+                url: 'https://api.map.baidu.com/reverse_geocoding/v3/?ak=jT4Dfk6xF7aZMMFwb7iQ6l5BaFryRm9z&output=json&coordtype=wgs84ll&location=' + result.lat + ',' + result.lng + '',
                 success (res) {
                   let adcodeRes = res.data.result
                   // 供搜索时优先排序 使用
@@ -84,28 +84,26 @@ export default {
     },
     getCompanyList () {
       // 查询 购物车详情
-      let that = this
+      let that = this;
       util.wXrequest({
-        url: this.$store.state.ip + '/yjmemberserver/company/list/ecard', 
+        url: this.$store.state.ip + '/onlinemarket_service/public/getCompanyListOpenMarket', 
+        // url: this.$store.state.ip + '/yjmemberserver/company/list/ecard', 
         data: {
-          regioncode: that.regioncode,
-          start: 0,
-          count: 100,
-          shopno: null
+          "regioncode": that.regioncode,
+          "start": 0,
+          "count": 100,
+          "headShopNo": ""
         },
         header: {
-          'Content-Type': 'application/json;charset=UTF-8'
+          'Content-Type':'application/json'
         },
         success(res) {
           console.log('res.data')
-          console.log(res.data)
-          if (res.data.ret === 0){
+          console.log(res.data);
+          if (res.data.code === '0'){
             // 存储所有商品类别
-            that.KTVlist = res.data.data
-            that.KTVlist = that.KTVlist.concat(res.data.data)
-            that.KTVlist = that.KTVlist.concat(res.data.data)
-            console.log('that.KTVlist')
-            console.log(that.KTVlist)
+            that.KTVlist = res.data.result
+            // that.KTVlist = that.KTVlist.concat(res.data.data)
           } else {
             that.KTVlist = []
             wx.showToast({
@@ -115,18 +113,23 @@ export default {
             })
             console.log('返回码不是 0')
           }
+        },
+        fail (res) {
+          console.log('失败了。。。。。。。。。。')
         }
       })
     },
     searchShop () {
       // 搜索商家  reLaunch
       wx.navigateTo({
-        url: '/pages/searchShop/main'
+        url: '/pages/searchShop/main?regioncode=' + this.regioncode
       })
     },
-    toGoodList (item) {
+    toLogin (item) {
       // 去购物  reLaunch
-      wx.navigateTo({
+      this.$store.commit('setHeadShopNo', item.officeid)
+      wx.setStorageSync('headShopNo', item.officeid)
+      wx.reLaunch({
         url: '/pages/good/main'
       })
     }
@@ -139,8 +142,7 @@ export default {
     this.getLocation()
   }
 }
-// http://yjtest.evideo.net.cn/wechat_order_service/Public/images/area.png
-// http://yjtest.evideo.net.cn/wechat_order_service/Public/images/page_bind_btn.png
+
 </script>
 <style lang="stylus" rel="stylesheet/stylus" scoped>
 @import "../../stylus/common.styl"
@@ -192,7 +194,7 @@ export default {
             left 0
             width 100%
             bottom 0
-            overflow hidden
+            overflow scroll
             .selectKTV-list-item
                 width 100%
                 height 70px

@@ -2,22 +2,32 @@
 
 const SET_APP_IN_VIEW = 'setAppInView'
 const SET_SYSTEM_INFO = 'setSystemInfo'
+const SET_PREV_SCENE = 'setPrevScene'
+const SET_PREV_CODE_TYPE = 'setPrevCodeType'
 const SET_CURRENT_PAGE = 'setCurrentPage'
+const SET_HAS_MARKET_FUNCTION = 'setHasMarketFunction'
 const SET_CLOUDUSERID = 'setClouduserid'
 const SET_TEL = 'setTel'
+const SET_OPENID = 'setOpenid'
+const SET_HEAD_SHOP_NO = 'setHeadShopNo'
+const SET_HEAD_SHOP_NO_CHANGE = 'setHeadShopNoChange'
 const SET_COMPANY_AND_ROOM = 'setCompanyAndRoom'
-const SET_REFRESH_COMPANY_AND_ROOM = 'setRefreshCompanyAndRoom'
+
+
 const SET_SCAN_QR_TIMER = 'setScanQrTimer'
 const SET_ROOM_SETTING = 'setRoomSetting'
 const SET_MENU = 'setMenu'
 const SET_PREV_MENU = 'setPrevMenu'
 const SET_ECARD = 'setEcard'
 const SET_CARDS = 'setCards'
+const SET_SET_PRIMARY_CARD = 'setSetPrimaryCard'
 const SET_GOODSTYPE = 'setGoodsType'
 const SET_GOODS = 'setGoods'
 const SET_ORDER = 'setOrder'
 const SET_CURRENT_GOOD = 'setCurrentGood'
 const SET_SHOW_COMBO = 'setShowCombo'
+const SET_MUST_ORDER = 'setMustOrder'
+const SET_SHOW_MUST_ORDER = 'setShowMustOrder'
 
 const SET_SHOW_LIST_BOX = 'setShowListBox'
 const SET_CLEAR_CART = 'setClearCart'
@@ -40,21 +50,38 @@ export default {
 	[SET_SYSTEM_INFO](state, payload) {
 		state.systemInfo = payload
 	},
+	[SET_PREV_SCENE](state, payload) {
+		state.prevScene = payload
+	},
+	[SET_PREV_CODE_TYPE](state, payload) {
+		state.prevCodeType = payload
+	},
 	[SET_CURRENT_PAGE](state, payload) {
 		state.currentPage = payload
 	},
+	[SET_HAS_MARKET_FUNCTION](state, payload) {
+		state.hasMarketFunction = payload
+	},
+	
 	[SET_CLOUDUSERID](state, payload) {
 		state.clouduserid = payload
 	},
 	[SET_TEL](state, payload) {
 		state.tel = payload
 	},
+	[SET_OPENID](state, payload) {
+		state.openid = payload
+	},
+	[SET_HEAD_SHOP_NO](state, payload) {
+		state.headShopNo = payload
+	},
+	[SET_HEAD_SHOP_NO_CHANGE](state, payload) {
+		state.headShopNoChange = payload
+	},
 	[SET_COMPANY_AND_ROOM](state, payload) {
 		state.companyAndRoom = payload
 	},
-	[SET_REFRESH_COMPANY_AND_ROOM](state, payload) {
-		state.refreshCompanyAndRoom = payload
-	},
+
 	[SET_SCAN_QR_TIMER](state, payload) {
 		state.scanQrTimer = payload
 	},
@@ -73,6 +100,9 @@ export default {
 	[SET_CARDS](state, payload) {
 		state.cards = payload
 	},
+	[SET_SET_PRIMARY_CARD](state, payload) {
+		state.setPrimaryCard = payload
+	},
 	[SET_GOODSTYPE](state, payload) {
 		state.goodsType = payload
 	},
@@ -87,6 +117,12 @@ export default {
 	},
 	[SET_SHOW_COMBO](state, payload) {
 		state.showCombo = payload
+	},
+	[SET_MUST_ORDER](state, payload) {
+		state.mustOrder = payload
+	},
+	[SET_SHOW_MUST_ORDER](state, payload) {
+		state.showMustOrder = payload
 	},
 	[SET_SHOW_LIST_BOX](state, payload) {
 		state.showListBox = payload

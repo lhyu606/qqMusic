@@ -6,19 +6,22 @@
         v-for="(item,index) in unbindList" 
         @click="toBindCard(item,index)" 
         :class="{purple:item.bg=='purple',gray:item.bg=='gray'}" 
-        :style="getItemBackground(item)"
         :key="index">
-          <div class="bindList-item-card-name">{{item.gradename}}</div>
-          <div class="bindList-item-NO">NO:{{item.cardnum}}</div>
-          <div class="bindList-item-line"></div>
-          <div class="bindList-item-ad">
-            <div class="bindList-item-ad-icon"></div>
-            <div class="bindList-item-ad-text">
-              {{item.companyname}}
+          <div class="bindList-item-bg" v-show="item.bg=='pic'" :style="{'background': 'url(' + item.cardlogourl + ')'}"></div>
+          <div class="cover">
+            <div class="bindList-item-card-name">{{item.gradename}}</div>
+            <div class="bindList-item-NO">NO:{{item.cardnum}}</div>
+            <div class="bindList-item-line"></div>
+            <div class="bindList-item-ad">
+              <div class="bindList-item-ad-icon"></div>
+              <div class="bindList-item-ad-text">
+                {{item.companyname}}
+              </div>
             </div>
+            <div class="bindList-item-data fs14">有效期至:{{item.uselimitdate}}</div>
+            <div class="bindList-item-state" v-show="item.banner!=''">{{item.banner}}</div>
           </div>
-          <div class="bindList-item-data fs14">有效期至:{{item.uselimitdate}}</div>
-          <div class="bindList-item-state" v-show="item.banner!=''">{{item.banner}}</div>
+          
       </div>
       <div class="bindList-wrapper-padding"></div>
     </scroll-view>
@@ -90,16 +93,6 @@ export default {
         }
       })
     },
-    getItemBackground (item) {
-      if (item.bg==='pic') {
-        return {
-          background: 'url(' + item.cardlogourl + ')',
-          backgroundSize: 'cover'
-        }
-      } else {
-        return {}
-      }
-    },
     initUnbindList () {
       this.unbindList.forEach(item => {
         if (item.status === 0) {
@@ -159,7 +152,7 @@ export default {
   left 0
   right 0
   bottom 10px
-  overflow hidden
+  overflow scroll
   padding-top 14px
   box-sizing border-box
 .bindList-item
@@ -168,14 +161,29 @@ export default {
   border-radius 10px
   margin-bottom 10px
   position relative
-  padding 20px 0 0 20px
   overflow hidden
   background-size cover
+  .bindList-item-bg
+    position absolute
+    top 0
+    left 0
+    right 0
+    bottom 0
+    z-index 1
+    background-size cover
+  .cover
+    position absolute
+    top 0
+    left 0
+    right 0
+    bottom 0
+    padding 20px 0 0 20px
+    z-index 100
   &.purple
-    background url("https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/00003049_105_1575356825_member_img?x-oss-process=image/resize,m_fill,h_960,w_480")
+    background url("https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/pink.png")
     background-size cover
   &.gray
-    background url("https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/00003049_105_1575356825_member_img?x-oss-process=image/resize,m_fill,h_960,w_480")
+    background url("https://yjevideocloud.oss-cn-shenzhen.aliyuncs.com/xcx/gray.png")
     background-size cover
   .bindList-item-card-name
     color #fff
@@ -189,7 +197,7 @@ export default {
     height 1px
     background rgba(0,0,0,.1)
     position absolute
-    bottom 30px
+    bottom 27px
     left 0
   .bindList-item-ad
     position absolute

@@ -45,7 +45,7 @@
         <input type="text" v-model="phone" placeholder="请输入手机号" class="tel">
       </div>
     </div>
-    <div class="borderT1"></div>
+    <!-- <div class="borderT1"></div>
     <div class="line flexlr">
       <div class="left2">图形验证码</div>
       <div class="middle">
@@ -54,7 +54,7 @@
       <div class="right2">
         <img class="picWord" :src="picWordSrc" @click="chagePicWord">
       </div>
-    </div>
+    </div> -->
     <div class="borderT1"></div>
     <div class="line flexlr">
       <div class="left2">手机验证码</div>
@@ -92,7 +92,7 @@ export default {
       userInfo: {},
       phone: '',
       picWordSrc: this.$store.state.ip + '/yjmemberserver/verifyCode/create?random=',
-      picWord: '',
+      // picWord: '',
       volidCode: '',
       cutDown: 60,
 
@@ -133,8 +133,8 @@ export default {
   watch: {
     cutDown () {
       if (this.cutDown <= 0) {
-        this.chagePicWord()
-        this.picWord = ''
+        // this.chagePicWord()
+        // this.picWord = ''
       }
     }
   },
@@ -171,14 +171,14 @@ export default {
           })
           return
       }
-      if (this.picWord === '') {
-        wx.showToast({
-          title: '请输入图形验证码',
-          icon: 'none',
-          duration: 2000
-        })
-        return
-      }
+      // if (this.picWord === '') {
+      //   wx.showToast({
+      //     title: '请输入图形验证码',
+      //     icon: 'none',
+      //     duration: 2000
+      //   })
+      //   return
+      // }
 
       let that = this
       util.wXrequest({
@@ -191,8 +191,7 @@ export default {
           'Content-Type':'application/json; charset=utf-8'
         },
         success(res) {
-          // todo
-          if (res.data.ret != 0) {
+          if (res.data.ret == 0) {
             wx.showToast({
               title: '验证码发送成功',
               icon: 'none',
@@ -224,9 +223,42 @@ export default {
         }
       })
     },
+    checkValidaCode () {
+      // 校验手机号
+      let that = this
+      util.wXrequest({
+        url: this.$store.state.ip + '/yjmemberserver/system/check/validation_code',
+        data: {
+          validationcode: this.volidCode,
+          mobile: this.phone
+        },
+        header: {
+          'Content-Type':'application/json; charset=utf-8'
+        },
+        success(res) {
+          if (res.data.ret == 0) {
+            // 验证成功
+            that.toRegister()
+          } else {
+            that.volidCode = ''
+            wx.showToast({
+              title: '验证码检验失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        },
+        fail(res) {
+          that.volidCode = ''
+          wx.showToast({
+            title: '验证码检验失败',
+            icon: 'none',
+            duration: 2000
+          })
+        }
+      })
+    },
     toPayCard () {
-      this.toRegister()
-      return false
       // 确认 提交 支付
       if (this.userInfo.nickName === '') {
         wx.showToast({
@@ -252,14 +284,14 @@ export default {
         })
         return
       }
-      if (this.picWord === '') {
-        wx.showToast({
-          title: '请输入图形验证码',
-          icon: 'none',
-          duration: 2000
-        })
-        return
-      }
+      // if (this.picWord === '') {
+      //   wx.showToast({
+      //     title: '请输入图形验证码',
+      //     icon: 'none',
+      //     duration: 2000
+      //   })
+      //   return
+      // }
       if (this.volidCode === '') {
         wx.showToast({
           title: '请输入手机验证码',
@@ -277,8 +309,9 @@ export default {
         return
       }
       console.log('确认提交')
-      // 校验 图形码
-      this.checkPicWord()
+      // 注册
+      this.checkValidaCode()
+      // this.checkPicWord()
     },
     checkPicWord () {
       // 校验 图形码
@@ -326,11 +359,14 @@ export default {
         cardNum: this.userInfo.recommend
       }
       // 处理 价格
-      if (this.applyCard.choicePrice === -1) {
+      if (this.applyCard.choicePrice == -1) {
         data.price = this.applyCard.sellmoney
+        data.totalmoney = this.applyCard.sellmoney
       } else {
         let price = this.applyCard.rule[this.applyCard.choicePrice].cashchangemoney
+        data.ruleid = this.applyCard.rule[this.applyCard.choicePrice].ruleid
         data.price = price
+        data.totalmoney = price
         data.cashmoney = price
         data.presentmoney = this.applyCard.rule[this.applyCard.choicePrice].presentmoney
       }
@@ -353,9 +389,38 @@ export default {
         success(res) {
           //  获取 ip  成功
           if (res.data.ret == 0) {
-            // 此处有 订单 概念
+            // 此处有 订单 概念  如果 支付 金额 为 0 不需要 支付，否则 去支付
+            if (res.data.data.money == 0) {
+              // 不需要支付 去商品 列表
+              wx.showToast({
+                title: '会员卡申请受理成功',
+                icon: 'none',
+                duration: 2000
+              })
+              let timer = setTimeout(() => {
+                clearTimeout(timer)
+                timer = null
+                wx.reLaunch({
+                  url: '/pages/good/main'
+                })
+              }, 2000)  
+            } else {
+              // 去支付
+              let url = '/pages/payCard/main?orderno=' + res.data.data.orderno 
+                        + '&ordername=' + res.data.data.ordername
+                        + '&money=' + res.data.data.money
+              wx.navigateTo({
+                url: url
+              })
+            }
+            
           } else {
             // 失败
+            wx.showToast({
+              title: res.data.msg || '申请会员卡失败',
+              icon: 'none',
+              duration: 2000
+            })
             console.log(res)
           }
         }
@@ -390,7 +455,7 @@ export default {
     },
     getCardNum (ecardid) {
       // 通过 推荐人 Ecardid 获取推荐人 卡号
-      if (Object.prototype.toString.call(ecardid).slice(8, -1) !== 'String') {
+      if (util.getDataType(ecardid) !== 'String') {
         wx.showToast({
           title: '获取推荐人卡号失败',
           icon: 'none',
@@ -446,10 +511,10 @@ export default {
       // 生日 变化
       this.userInfo.birthday = e.mp.detail.value
     },
-    chagePicWord () {
-      // 更新 图形验证码
-      this.verifySrc = this.verifySrc.substring(0, this.verifySrc.indexOf('?random=')) + '?random=' + this.getTimestemp()
-    },
+    // chagePicWord () {
+    //   // 更新 图形验证码
+    //   this.verifySrc = this.verifySrc.substring(0, this.verifySrc.indexOf('?random=')) + '?random=' + this.getTimestemp()
+    // },
     initAgreeContract () {
         // 初始化 申请会员须知
         this.agreeContract = this.applyCard.isContract === 1 ? 0 : 1
@@ -500,6 +565,8 @@ export default {
     let date = new Date()
     this.startDate = date.getFullYear() - 100 + '-01-01'
     this.endDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
+    this.agreed = 0
+    this.volidCode = ''
   }
 }
 </script>
@@ -523,7 +590,7 @@ export default {
 .radio
   display inline-block
   width 18px
-  height 100%
+  height 50px
   margin 0 4px
   vertical-align middle
   background url('../../../static/unCheck.png') no-repeat center center
